@@ -1,0 +1,11 @@
+/* Shell global styles. Pulls the shared LMS theme (Tailwind v4 + tokens). */
+@import "@lms/tailwind-config/shared.css";
+
+/* Scan this app's own files in addition to the shared UI package. */
+@source "./**/*.{ts,tsx}";
+
+body {
+  background-color: var(--color-surface-muted);
+  color: #111827;
+  font-family: var(--font-sans);
+}

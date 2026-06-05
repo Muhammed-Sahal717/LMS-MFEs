@@ -1,0 +1,32 @@
+/*
+ * Shared Tailwind v4 theme for all LMS micro-frontends.
+ * Each app imports this from its own globals.css:
+ *   @import "@lms/tailwind-config/shared.css";
+ * Tailwind v4 is CSS-first: design tokens live in @theme below.
+ */
+@import "tailwindcss";
+
+/* Scan the shared UI package so its class names are not purged. */
+@source "../ui/src/**/*.{ts,tsx}";
+
+@theme {
+  /* Brand palette */
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-200: #bcd9ff;
+  --color-brand-300: #8ec1ff;
+  --color-brand-400: #599fff;
+  --color-brand-500: #2f7bff;
+  --color-brand-600: #1a5ef0;
+  --color-brand-700: #1549c4;
+  --color-brand-800: #173f9c;
+  --color-brand-900: #18387b;
+
+  /* Neutral surface tokens */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f7fa;
+  --color-border: #e3e8ef;
+
+  --radius-card: 0.75rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

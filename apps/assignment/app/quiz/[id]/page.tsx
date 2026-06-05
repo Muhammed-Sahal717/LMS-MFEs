@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Loader, cn } from "@lms/ui";
-import { assignmentsApi, type QuizOut, type SubmissionOut } from "@lms/api-client";
+import { assignmentsApi, type AssignmentOut, type SubmissionOut } from "@lms/api-client";
 
 export default function QuizPage({
   params,
@@ -11,14 +11,16 @@ export default function QuizPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [quiz, setQuiz] = useState<QuizOut | null | undefined>(undefined);
+  const [assignment, setAssignment] = useState<AssignmentOut | null | undefined>(undefined);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<SubmissionOut | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    assignmentsApi.getQuiz(id).then(setQuiz).catch(() => setQuiz(null));
+    assignmentsApi.get(id).then(setAssignment).catch(() => setAssignment(null));
   }, [id]);
+
+  const quiz = assignment?.quiz;
 
   async function onSubmit() {
     if (!quiz) return;
@@ -35,14 +37,14 @@ export default function QuizPage({
     }
   }
 
-  if (quiz === undefined) {
+  if (assignment === undefined) {
     return (
       <div className="mt-10 flex justify-center">
         <Loader size="lg" label="Loading quiz…" />
       </div>
     );
   }
-  if (quiz === null) {
+  if (assignment === null || !quiz) {
     return (
       <div className="mx-auto max-w-3xl">
         <p className="text-gray-600">Quiz not found.</p>
@@ -56,7 +58,7 @@ export default function QuizPage({
   return (
     <div className="mx-auto max-w-3xl">
       <Link href="/" className="text-sm text-brand-700 hover:underline">← Assignments</Link>
-      <h1 className="mt-4 text-2xl font-bold text-gray-900">{quiz.title}</h1>
+      <h1 className="mt-4 text-2xl font-bold text-gray-900">{assignment.title}</h1>
 
       {result ? (
         <Card className="mt-6">

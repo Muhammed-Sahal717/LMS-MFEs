@@ -30,7 +30,7 @@ export default function AdminCoursesPage() {
                 <div>
                   <div className="font-medium text-gray-900">{c.title}</div>
                   <div className="text-xs text-gray-500">
-                    {c.instructor} · {c.lessonCount} lessons
+                    {c.enrollment_count} enrollments · {new Date(c.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <span className="text-xs text-gray-500">{c.status}</span>

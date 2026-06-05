@@ -18,14 +18,19 @@ const zone = (name: string, fallbackPort: number) =>
 const nextConfig: NextConfig = {
   transpilePackages: ["@lms/ui", "@lms/api-client"],
   async rewrites() {
+    const zoneRewrites = (path: string, name: string, port: number) => [
+      { source: `${path}`, destination: `${zone(name, port)}${path}` },
+      { source: `${path}/:path+`, destination: `${zone(name, port)}${path}/:path+` },
+    ];
+
     return [
       // --- Feature MFE zones (enable as each is built) ---
-      { source: "/auth/:path*", destination: `${zone("AUTH", 3001)}/auth/:path*` },
-      { source: "/courses/:path*", destination: `${zone("CATALOG", 3002)}/courses/:path*` },
-      { source: "/learn/:path*", destination: `${zone("LEARNING", 3003)}/learn/:path*` },
-      { source: "/assignments/:path*", destination: `${zone("ASSIGN", 3004)}/assignments/:path*` },
-      { source: "/dashboard/:path*", destination: `${zone("DASHBOARD", 3005)}/dashboard/:path*` },
-      { source: "/admin/:path*", destination: `${zone("ADMIN", 3006)}/admin/:path*` },
+      ...zoneRewrites("/auth", "AUTH", 3001),
+      ...zoneRewrites("/courses", "CATALOG", 3002),
+      ...zoneRewrites("/learn", "LEARNING", 3003),
+      ...zoneRewrites("/assignments", "ASSIGN", 3004),
+      ...zoneRewrites("/dashboard", "DASHBOARD", 3005),
+      ...zoneRewrites("/admin", "ADMIN", 3006),
     ];
   },
 };

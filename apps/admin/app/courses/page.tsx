@@ -61,6 +61,7 @@ function CreateCourseModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function slugify(value: string) {
     return value
@@ -72,6 +73,7 @@ function CreateCourseModal({
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    setError(null);
     setSaving(true);
     try {
       const payload: CourseCreate = {
@@ -79,10 +81,15 @@ function CreateCourseModal({
         slug: slugify(title),
         summary: description,
         description,
+        level: "beginner",
+        is_free: true,
+        price: "0",
       };
       await adminApi.createCourse(payload);
       setTitle(""); setDescription("");
       onCreated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create course.");
     } finally {
       setSaving(false);
     }
@@ -91,6 +98,7 @@ function CreateCourseModal({
   return (
     <Modal open={open} onClose={onClose} title="Create course">
       <form onSubmit={submit} className="flex flex-col gap-4">
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <Input label="Title" required value={title} onChange={(e) => setTitle(e.target.value)} />
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-gray-700">Description</label>

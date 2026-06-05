@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, Loader } from "@lms/ui";
-import { dashboardApi, type DashboardSummary } from "@lms/api-client";
+import { dashboardApi, type DashboardOut } from "@lms/api-client";
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: number }) {
   return (
@@ -25,7 +25,7 @@ const activityIcon: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
+  const [data, setData] = useState<DashboardOut | null>(null);
 
   useEffect(() => {
     dashboardApi.summary().then(setData).catch(() => setData(null));
@@ -41,47 +41,35 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-bold text-gray-900">Welcome {data.user.name}</h1>
+      <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
       <p className="mt-2 text-gray-600">Here's your learning at a glance.</p>
 
       {/* Stat widgets */}
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <StatCard icon="📚" label="Enrolled Courses" value={data.enrolledCourses} />
-        <StatCard icon="🎥" label="Completed Lessons" value={data.completedLessons} />
-        <StatCard icon="📝" label="Pending Assignments" value={data.pendingAssignments} />
+        <StatCard icon="📚" label="Enrolled Courses" value={data.enrolled_courses} />
+        <StatCard icon="🎥" label="Completed Lessons" value={data.completed_lessons} />
+        <StatCard icon="📝" label="Pending Assignments" value={data.pending_assignments} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Upcoming assignments */}
         <Card header={<span>Upcoming Assignments</span>}>
-          {data.upcomingAssignments.length === 0 ? (
+          {data.pending_assignments === 0 ? (
             <p className="text-sm text-gray-500">Nothing due. Nice. 🎉</p>
           ) : (
-            <ul className="flex flex-col gap-3">
-              {data.upcomingAssignments.map((a) => (
-                <li key={a.id} className="flex items-center justify-between">
-                  <a
-                    href={`/assignments/${a.id}`}
-                    className="text-sm font-medium text-gray-800 hover:text-brand-700"
-                  >
-                    {a.title}
-                  </a>
-                  <span className="text-xs text-gray-500">Due {a.dueDate}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-sm text-gray-500">Check Assignments for due items.</p>
           )}
         </Card>
 
         {/* Recent activity */}
         <Card header={<span>Recent Activity</span>}>
           <ul className="flex flex-col gap-3">
-            {data.recentActivity.map((act) => (
-              <li key={act.id} className="flex items-center gap-3 text-sm text-gray-700">
-                <span className="text-brand-600">{activityIcon[act.type] ?? "•"}</span>
-                <span className="flex-1">{act.label}</span>
+            {data.recent_activity.map((act, index) => (
+              <li key={`${act.resource_id ?? "activity"}-${index}`} className="flex items-center gap-3 text-sm text-gray-700">
+                <span className="text-brand-600">{activityIcon[act.resource] ?? "•"}</span>
+                <span className="flex-1">{act.action} {act.resource}</span>
                 <span className="text-xs text-gray-400">
-                  {new Date(act.at).toLocaleDateString()}
+                  {new Date(act.created_at).toLocaleDateString()}
                 </span>
               </li>
             ))}

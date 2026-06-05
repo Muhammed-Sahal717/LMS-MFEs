@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Loader } from "@lms/ui";
-import { catalogApi, type Course } from "@lms/api-client";
+import { catalogApi, type CourseDetailOut } from "@lms/api-client";
 
 export default function CourseDetailPage({
   params,
@@ -11,8 +11,9 @@ export default function CourseDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const [course, setCourse] = useState<Course | null | undefined>(undefined);
+  const [course, setCourse] = useState<CourseDetailOut | null | undefined>(undefined);
   const [enrolling, setEnrolling] = useState(false);
+  const [enrolled, setEnrolled] = useState(false);
 
   useEffect(() => {
     catalogApi
@@ -25,8 +26,8 @@ export default function CourseDetailPage({
     if (!course) return;
     setEnrolling(true);
     try {
-      const updated = await catalogApi.enroll(course.id);
-      setCourse(updated);
+      await catalogApi.enroll(course.id);
+      setEnrolled(true);
     } finally {
       setEnrolling(false);
     }
@@ -58,14 +59,14 @@ export default function CourseDetailPage({
       </Link>
       <h1 className="mt-4 text-3xl font-bold text-gray-900">{course.title}</h1>
       <div className="mt-2 flex gap-4 text-sm text-gray-500">
-        <span>👩‍🏫 {course.instructor}</span>
-        <span>{course.lessonCount} lessons</span>
+        <span>{course.level}</span>
+        <span>{course.enrollment_count} enrolled</span>
       </div>
 
       <Card className="mt-6">
-        <p className="text-gray-700">{course.description}</p>
+        <p className="text-gray-700">{course.description ?? course.summary ?? "No description yet."}</p>
         <div className="mt-6">
-          {course.enrolled ? (
+          {enrolled ? (
             <div className="flex items-center gap-3">
               <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700">
                 ✓ Enrolled

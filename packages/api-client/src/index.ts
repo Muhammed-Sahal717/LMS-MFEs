@@ -3,7 +3,7 @@ export * from "./types";
 // Core client
 export { api } from "./client";
 export { ApiError, type ApiErrorBody } from "./errors";
-export { API_BASE, TENANT_ID } from "./config";
+export { API_BASE, getTenantId, setTenantId } from "./config";
 export {
   getAccessToken,
   getRefreshToken,

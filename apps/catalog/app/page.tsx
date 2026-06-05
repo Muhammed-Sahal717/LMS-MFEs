@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Input, Loader } from "@lms/ui";
-import { catalogApi, type Course } from "@lms/api-client";
+import { catalogApi, type CourseOut } from "@lms/api-client";
 import { CourseCard } from "./CourseCard";
 
 export default function BrowsePage() {
-  const [courses, setCourses] = useState<Course[] | null>(null);
+  const [courses, setCourses] = useState<CourseOut[] | null>(null);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -17,12 +17,10 @@ export default function BrowsePage() {
     if (!courses) return [];
     const q = query.trim().toLowerCase();
     if (!q) return courses;
-    return courses.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q) ||
-        c.instructor.toLowerCase().includes(q),
-    );
+    return courses.filter((c) => {
+      const summary = c.summary ?? "";
+      return c.title.toLowerCase().includes(q) || summary.toLowerCase().includes(q);
+    });
   }, [courses, query]);
 
   return (

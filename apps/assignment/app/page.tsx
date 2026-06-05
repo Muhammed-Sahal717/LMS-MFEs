@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Button, Loader } from "@lms/ui";
-import { assignmentsApi, type Assignment } from "@lms/api-client";
+import { assignmentsApi, type AssignmentOut } from "@lms/api-client";
 import { StatusBadge } from "./status";
 
 export default function AssignmentsPage() {
-  const [items, setItems] = useState<Assignment[] | null>(null);
+  const [items, setItems] = useState<AssignmentOut[] | null>(null);
 
   useEffect(() => {
     assignmentsApi.list().then(setItems).catch(() => setItems([]));
@@ -17,14 +17,9 @@ export default function AssignmentsPage() {
     <div className="mx-auto max-w-4xl">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-        <div className="flex gap-2">
-          <Link href="/quiz/q1">
-            <Button size="sm" variant="secondary">Take quiz</Button>
-          </Link>
-          <Link href="/grades">
-            <Button size="sm" variant="secondary">My grades</Button>
-          </Link>
-        </div>
+        <Link href="/grades">
+          <Button size="sm" variant="secondary">My grades</Button>
+        </Link>
       </div>
 
       {items === null ? (
@@ -40,10 +35,12 @@ export default function AssignmentsPage() {
                   <Link href={`/${a.id}`} className="font-medium text-gray-900 hover:text-brand-700">
                     {a.title}
                   </Link>
-                  <p className="mt-1 text-xs text-gray-500">Due {a.dueDate}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {a.due_at ? `Due ${new Date(a.due_at).toLocaleDateString()}` : "No due date"}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <StatusBadge status={a.status} />
+                  <StatusBadge type={a.type} published={a.is_published} />
                   <Link href={`/${a.id}`}>
                     <Button size="sm">Open</Button>
                   </Link>

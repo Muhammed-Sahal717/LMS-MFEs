@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Loader, cn } from "@lms/ui";
-import { assignmentsApi, type Quiz, type QuizResult } from "@lms/api-client";
+import { assignmentsApi, type QuizOut, type SubmissionOut } from "@lms/api-client";
 
 export default function QuizPage({
   params,
@@ -11,9 +11,9 @@ export default function QuizPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [quiz, setQuiz] = useState<Quiz | null | undefined>(undefined);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [result, setResult] = useState<QuizResult | null>(null);
+  const [quiz, setQuiz] = useState<QuizOut | null | undefined>(undefined);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [result, setResult] = useState<SubmissionOut | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -24,8 +24,12 @@ export default function QuizPage({
     if (!quiz) return;
     setSubmitting(true);
     try {
-      const ordered = quiz.questions.map((_, i) => answers[i] ?? -1);
-      setResult(await assignmentsApi.submitQuiz(quiz.id, ordered));
+      const payload: Record<string, string[]> = {};
+      quiz.questions.forEach((q) => {
+        const answerId = answers[q.id];
+        if (answerId) payload[q.id] = [answerId];
+      });
+      setResult(await assignmentsApi.submit(id, { answers: payload }));
     } finally {
       setSubmitting(false);
     }
@@ -47,7 +51,7 @@ export default function QuizPage({
     );
   }
 
-  const allAnswered = quiz.questions.every((_, i) => answers[i] !== undefined);
+  const allAnswered = quiz.questions.every((q) => answers[q.id] !== undefined);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -56,11 +60,9 @@ export default function QuizPage({
 
       {result ? (
         <Card className="mt-6">
-          <p className="text-lg font-semibold text-gray-900">
-            Score: {result.score} / {result.maxScore}
-          </p>
+          <p className="text-lg font-semibold text-gray-900">Quiz submitted</p>
           <p className="mt-1 text-sm text-gray-600">
-            {result.score === result.maxScore ? "Perfect! 🎉" : "Review the lessons and retry."}
+            Your submission is {result.status}.
           </p>
           <div className="mt-4">
             <Button size="sm" variant="secondary" onClick={() => { setResult(null); setAnswers({}); }}>
@@ -74,18 +76,18 @@ export default function QuizPage({
             <Card key={q.id}>
               <p className="font-medium text-gray-900">{qi + 1}. {q.text}</p>
               <div className="mt-3 flex flex-col gap-2">
-                {q.options.map((opt, oi) => (
+                {q.answers.map((opt) => (
                   <button
-                    key={oi}
-                    onClick={() => setAnswers((a) => ({ ...a, [qi]: oi }))}
+                    key={opt.id}
+                    onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt.id }))}
                     className={cn(
                       "rounded-lg border px-3 py-2 text-left text-sm",
-                      answers[qi] === oi
+                      answers[q.id] === opt.id
                         ? "border-brand-500 bg-brand-50 text-brand-700"
                         : "border-border hover:bg-surface-muted",
                     )}
                   >
-                    {opt}
+                    {opt.text}
                   </button>
                 ))}
               </div>

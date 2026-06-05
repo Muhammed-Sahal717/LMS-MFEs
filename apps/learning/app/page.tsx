@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Button, Loader, ProgressBar } from "@lms/ui";
-import { learningApi, type Course } from "@lms/api-client";
+import { learningApi, type CourseOut } from "@lms/api-client";
 
 export default function MyLearningPage() {
-  const [courses, setCourses] = useState<Course[] | null>(null);
+  const [courses, setCourses] = useState<CourseOut[] | null>(null);
 
   useEffect(() => {
     learningApi.myCourses().then(setCourses).catch(() => setCourses([]));
@@ -32,10 +32,10 @@ export default function MyLearningPage() {
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
           {courses.map((c) => (
             <Card key={c.id} header={<span>{c.title}</span>}>
-              <ProgressBar value={c.progressPercent ?? 0} showLabel />
+              <ProgressBar value={0} showLabel />
               <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-                <span>{c.lessonCount} lessons</span>
-                <Link href={`/${c.slug}`}>
+                <span>{c.enrollment_count} enrolled</span>
+                <Link href={`/${c.id}`}>
                   <Button size="sm">Continue</Button>
                 </Link>
               </div>

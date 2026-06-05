@@ -1,9 +1,9 @@
 import { api } from "./client";
-import type { Course } from "./types";
+import type { CourseDetailOut, CourseOut, EnrollmentOut, Page } from "./types";
 
-/** Course catalog endpoints. Mock-backed now, real backend later. */
+/** Course catalog endpoints (backend). */
 export const catalogApi = {
-  list: () => api.get<Course[]>("/courses"),
-  get: (slug: string) => api.get<Course>(`/courses/${slug}`),
-  enroll: (id: string) => api.post<Course>(`/courses/${id}/enroll`, {}),
+  list: () => api.get<Page<CourseOut>>("/courses").then((page) => page.items),
+  get: (courseId: string) => api.get<CourseDetailOut>(`/courses/${courseId}`),
+  enroll: (id: string) => api.post<EnrollmentOut>(`/courses/${id}/enroll`, {}),
 };

@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button, Loader, ProgressBar, cn } from "@lms/ui";
-import { learningApi, type Lesson } from "@lms/api-client";
+import { learningApi, type LessonOut } from "@lms/api-client";
 
 export default function PlayerPage({
   params,
@@ -11,9 +11,10 @@ export default function PlayerPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const [lessons, setLessons] = useState<Lesson[] | null>(null);
+  const [lessons, setLessons] = useState<LessonOut[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [completed, setCompleted] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     learningApi
@@ -32,17 +33,16 @@ export default function PlayerPage({
 
   const progress = useMemo(() => {
     if (!lessons || lessons.length === 0) return 0;
-    return Math.round((lessons.filter((l) => l.completed).length / lessons.length) * 100);
-  }, [lessons]);
+    const done = lessons.filter((l) => completed[l.id]).length;
+    return Math.round((done / lessons.length) * 100);
+  }, [lessons, completed]);
 
   async function markComplete() {
-    if (!active || active.completed) return;
+    if (!active || completed[active.id]) return;
     setSaving(true);
     try {
-      const updated = await learningApi.markComplete(active.id);
-      setLessons((prev) =>
-        prev ? prev.map((l) => (l.id === updated.id ? updated : l)) : prev,
-      );
+      await learningApi.markComplete(active.id);
+      setCompleted((prev) => ({ ...prev, [active.id]: true }));
     } finally {
       setSaving(false);
     }
@@ -73,24 +73,24 @@ export default function PlayerPage({
             <>
               <h1 className="text-2xl font-bold text-gray-900">{active.title}</h1>
               <div className="mt-4">
-                {active.type === "video" ? (
+                {active.content_type === "video" ? (
                   <div className="aspect-video w-full overflow-hidden rounded-[var(--radius-card)] bg-black">
                     <iframe
                       className="h-full w-full"
-                      src={active.videoUrl}
+                      src={active.video?.hls_url ?? active.video?.url ?? undefined}
                       title={active.title}
                       allowFullScreen
                     />
                   </div>
                 ) : (
                   <article className="rounded-[var(--radius-card)] border border-border bg-surface p-6 leading-relaxed text-gray-700">
-                    {active.body}
+                    {active.document?.file_url ?? "Document available."}
                   </article>
                 )}
               </div>
               <div className="mt-4">
-                <Button onClick={markComplete} loading={saving} disabled={active.completed}>
-                  {active.completed ? "✓ Completed" : "Mark complete"}
+                <Button onClick={markComplete} loading={saving} disabled={completed[active.id]}>
+                  {completed[active.id] ? "✓ Completed" : "Mark complete"}
                 </Button>
               </div>
             </>
@@ -114,9 +114,11 @@ export default function PlayerPage({
                       : "text-gray-600 hover:bg-surface-muted",
                   )}
                 >
-                  <span>{l.completed ? "✓" : l.type === "video" ? "▶" : "📄"}</span>
+                  <span>{completed[l.id] ? "✓" : l.content_type === "video" ? "▶" : "📄"}</span>
                   <span className="flex-1">{l.title}</span>
-                  <span className="text-xs text-gray-400">{l.durationMinutes}m</span>
+                  <span className="text-xs text-gray-400">
+                    {Math.round(l.duration_seconds / 60)}m
+                  </span>
                 </button>
               </li>
             ))}

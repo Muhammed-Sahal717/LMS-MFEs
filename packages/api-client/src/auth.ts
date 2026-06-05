@@ -1,9 +1,6 @@
 import { api } from "./client";
-import { TENANT_ID } from "./config";
 import { clearTokens, setTokens } from "./tokens";
 import type { MeOut, RegisterPayload, TokenResponse, UserOut } from "./types";
-
-const TENANT_HEADER = { "X-Tenant-ID": TENANT_ID };
 
 /**
  * Auth endpoints (/api/v1/auth — core module, no license needed).
@@ -41,7 +38,7 @@ export const authApi = {
   /** Revokes the session server-side, then clears local tokens. */
   logout: async (refresh_token?: string): Promise<void> => {
     try {
-      await api.post("/auth/logout", { refresh_token }, { headers: TENANT_HEADER });
+      await api.post("/auth/logout", { refresh_token });
     } catch {
       // best-effort; clear locally regardless
     }

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Loader, ProgressBar } from "@lms/ui";
-import { assignmentsApi, type GradeView } from "@lms/api-client";
+import { assignmentsApi, type GradeOut } from "@lms/api-client";
 
 export default function GradesPage() {
-  const [grades, setGrades] = useState<GradeView[] | null>(null);
+  const [grades, setGrades] = useState<GradeOut[] | null>(null);
 
   useEffect(() => {
     assignmentsApi.grades().then(setGrades).catch(() => setGrades([]));
@@ -25,15 +25,21 @@ export default function GradesPage() {
         <p className="mt-10 text-gray-500">No grades yet.</p>
       ) : (
         <div className="mt-8 flex flex-col gap-3">
-          {grades.map((g) => (
-            <Card key={g.assignmentId} header={<span>{g.title}</span>}>
+          {grades.map((g) => {
+            const points = Number(g.points);
+            const maxPoints = Number(g.max_points);
+            return (
+            <Card key={g.assignment_id} header={<span>Assignment {g.assignment_id.slice(0, 8)}</span>}>
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold text-gray-900">
-                  {g.score}
-                  <span className="text-base font-normal text-gray-400">/{g.maxScore}</span>
+                  {Number.isFinite(points) ? points : g.points}
+                  <span className="text-base font-normal text-gray-400">/{Number.isFinite(maxPoints) ? maxPoints : g.max_points}</span>
                 </span>
                 <div className="w-40">
-                  <ProgressBar value={(g.score / g.maxScore) * 100} showLabel />
+                  <ProgressBar
+                    value={Number.isFinite(points) && Number.isFinite(maxPoints) && maxPoints > 0 ? (points / maxPoints) * 100 : 0}
+                    showLabel
+                  />
                 </div>
               </div>
               {g.feedback ? (
@@ -42,7 +48,7 @@ export default function GradesPage() {
                 </p>
               ) : null}
             </Card>
-          ))}
+          );})}
         </div>
       )}
     </div>

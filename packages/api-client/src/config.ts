@@ -2,9 +2,18 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
-/**
- * Tenant slug sent as X-Tenant-ID on pre-auth calls. Post-auth the backend
- * reads the tenant from the JWT (the JWT always wins), so this only matters for
- * login/register/refresh/forgot/reset.
- */
-export const TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID ?? "full-lms";
+export const DEFAULT_TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID ?? "full-lms";
+
+export function getTenantId(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("tenant_id") ?? DEFAULT_TENANT_ID;
+  }
+  return DEFAULT_TENANT_ID;
+}
+
+export function setTenantId(tenantId: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("tenant_id", tenantId);
+  }
+}
+

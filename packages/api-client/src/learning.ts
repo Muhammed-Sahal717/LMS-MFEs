@@ -1,10 +1,14 @@
 import { api } from "./client";
-import type { Course, Lesson } from "./types";
+import type { CourseOut, LessonOut, LessonProgressOut, Page } from "./types";
 
-/** Learning endpoints: enrolled courses, lessons, progress, mark complete. */
+/** Learning endpoints: lessons + progress. */
 export const learningApi = {
-  myCourses: () => api.get<Course[]>("/learn/courses"),
-  lessons: (slug: string) => api.get<Lesson[]>(`/courses/${slug}/lessons`),
-  markComplete: (lessonId: string) =>
-    api.post<Lesson>(`/lessons/${lessonId}/complete`, {}),
+  // Backend doesn't provide enrolled course list yet; fall back to catalog list.
+  myCourses: () => api.get<Page<CourseOut>>("/courses").then((page) => page.items),
+  lessons: (courseId: string) => api.get<LessonOut[]>(`/learning/courses/${courseId}/lessons`),
+  markComplete: (lessonId: string, lastPositionSeconds = 0) =>
+    api.post<LessonProgressOut>(
+      `/learning/lessons/${lessonId}/complete`,
+      { last_position_seconds: lastPositionSeconds },
+    ),
 };

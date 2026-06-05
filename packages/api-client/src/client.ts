@@ -1,4 +1,4 @@
-import { API_BASE, TENANT_ID } from "./config";
+import { API_BASE, getTenantId } from "./config";
 import { ApiError, type ApiErrorBody } from "./errors";
 import {
   clearTokens,
@@ -25,7 +25,7 @@ async function doRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Tenant-ID": TENANT_ID },
+      headers: { "Content-Type": "application/json", "X-Tenant-ID": getTenantId() },
       body: JSON.stringify({ refresh_token }),
     });
     if (!res.ok) {
@@ -58,7 +58,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
-    "X-Tenant-ID": TENANT_ID,
+    "X-Tenant-ID": getTenantId(),
     ...(headers as Record<string, string>),
   };
   if (auth) {

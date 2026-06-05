@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Loader } from "@lms/ui";
-import { assignmentsApi, type Assignment } from "@lms/api-client";
+import { assignmentsApi, type AssignmentOut, type SubmissionOut } from "@lms/api-client";
 import { StatusBadge } from "../status";
 
 export default function AssignmentDetailPage({
@@ -12,9 +12,10 @@ export default function AssignmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [assignment, setAssignment] = useState<Assignment | null | undefined>(undefined);
+  const [assignment, setAssignment] = useState<AssignmentOut | null | undefined>(undefined);
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [submission, setSubmission] = useState<SubmissionOut | null>(null);
 
   useEffect(() => {
     assignmentsApi.get(id).then(setAssignment).catch(() => setAssignment(null));
@@ -24,8 +25,8 @@ export default function AssignmentDetailPage({
     if (!assignment) return;
     setSaving(true);
     try {
-      const updated = await assignmentsApi.submit(assignment.id, text);
-      setAssignment(updated);
+      const res = await assignmentsApi.submit(assignment.id, { content: text });
+      setSubmission(res);
     } finally {
       setSaving(false);
     }
@@ -49,7 +50,7 @@ export default function AssignmentDetailPage({
     );
   }
 
-  const locked = assignment.status !== "pending";
+  const locked = !assignment.is_published || !!submission;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -58,16 +59,16 @@ export default function AssignmentDetailPage({
       </Link>
       <div className="mt-4 flex items-center gap-3">
         <h1 className="text-2xl font-bold text-gray-900">{assignment.title}</h1>
-        <StatusBadge status={assignment.status} />
+        <StatusBadge type={assignment.type} published={assignment.is_published} />
       </div>
-      <p className="mt-1 text-sm text-gray-500">Due {assignment.dueDate}</p>
+      <p className="mt-1 text-sm text-gray-500">
+        {assignment.due_at ? `Due ${new Date(assignment.due_at).toLocaleDateString()}` : "No due date"}
+      </p>
 
       <Card className="mt-6">
         {locked ? (
           <p className="text-sm text-gray-600">
-            {assignment.status === "graded"
-              ? "This assignment has been graded. See your grades."
-              : "Submitted. Awaiting grading."}
+            {submission ? "Submitted. Awaiting grading." : "This assignment is not open."}
           </p>
         ) : (
           <div className="flex flex-col gap-3">

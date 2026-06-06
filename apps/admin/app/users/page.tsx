@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, Loader, Badge, Button } from "@lms/ui";
 import { adminApi, type UserOut } from "@lms/api-client";
-import { AlertTriangle, UsersX } from "lucide-react";
+import { AlertTriangle, UserX } from "lucide-react";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserOut[] | null>(null);
@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
         </div>
       ) : users.length === 0 ? (
         <div className="mt-12 flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-gray-300 bg-gray-50">
-          <UsersX className="text-gray-400 w-12 h-12 mb-4" />
+          <UserX className="text-gray-400 w-12 h-12 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900">No users found</h3>
           <p className="mt-2 text-gray-500">There are no users registered in this tenant yet.</p>
         </div>

@@ -100,11 +100,14 @@ API_URL=http://<backend-host>:8000 pnpm gen:api   # writes src/schema.d.ts
 Then migrate each zone's API module onto the generated types (replacing the
 hand-written contract DTOs in `types.ts`).
 
-### Status / open items
-- **Auth MFE** wired to real API (login/register/forgot/reset/logout, refresh).
-- Other 5 zones still call **legacy** `*Api` modules with pre-integration paths —
-  migrate per zone (Courses → Learning → Assignments → Dashboard → Admin).
-- Backend not yet hosted; confirm prod base URL, CORS origins, file-upload flow.
+### Multi-Tenancy & Subdomain Routing
+This LMS architecture supports true multi-tenancy. 
+- **Subdomain Detection:** The API client automatically infers the `X-Tenant-ID` from the current hostname (e.g., `abc-academy.localhost:3000` sets the tenant to `abc-academy`).
+- **Vercel Fallback:** For local testing or Vercel preview URLs (e.g., `abc-academy-lms.vercel.app`), the client dynamically extracts the slug and applies it.
+
+### Security & Role-Based Access
+- **AdminGuard:** The `/admin` zone is protected by a client-side wrapper that verifies the `user.roles` (requiring `admin`, `tenant_admin`, `super_admin`, or `instructor`). Unauthorized students are silently redirected back to `/dashboard`.
+- **Legacy Purge Complete:** All legacy `*Api` mock interfaces have been deleted. The application strictly adheres to the official `snake_case` backend schema (`UserOut`, `CourseOut`, etc.).
 
 ## Adding a new MFE zone (the recipe)
 

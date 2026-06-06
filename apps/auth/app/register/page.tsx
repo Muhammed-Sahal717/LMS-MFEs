@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button, Input } from "@lms/ui";
-import { authApi, ApiError } from "@lms/api-client";
+import { authApi, ApiError, getTenantId, setTenantId } from "@lms/api-client";
 import { AuthCard } from "../AuthCard";
 
 export default function RegisterPage() {
@@ -13,11 +13,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [tenantId, setLocalTenantId] = useState(() => getTenantId());
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
+      setTenantId(tenantId);
       await authApi.register({ email, password, full_name: fullName });
       // Register returns no tokens → log in to obtain the session.
       await authApi.login(email, password);
@@ -73,7 +76,21 @@ export default function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="At least 8 characters"
         />
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700" htmlFor="tenant-select">
+            Tenant
+          </label>
+          <select
+            id="tenant-select"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            value={tenantId}
+            onChange={(e) => setLocalTenantId(e.target.value)}
+          >
+            <option value="full-lms">Full LMS (Default)</option>
+            <option value="abc-academy">ABC Academy</option>
+          </select>
+        </div>
+        {error ? <p className="mt-1 text-sm text-red-600 rounded-md bg-red-50 p-2">{error}</p> : null}
         <Button type="submit" loading={loading} fullWidth>
           Create account
         </Button>

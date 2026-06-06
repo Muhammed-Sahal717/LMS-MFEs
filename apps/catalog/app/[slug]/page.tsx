@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Loader } from "@lms/ui";
-import { catalogApi, type CourseDetailOut } from "@lms/api-client";
+import { catalogApi, learningApi, type CourseDetailOut } from "@lms/api-client";
 
 export default function CourseDetailPage({
   params,
@@ -18,7 +18,13 @@ export default function CourseDetailPage({
   useEffect(() => {
     catalogApi
       .get(slug)
-      .then(setCourse)
+      .then((c) => {
+        setCourse(c);
+        // Silent check: if we can fetch lessons, we are enrolled
+        return learningApi.lessons(c.id)
+          .then(() => setEnrolled(true))
+          .catch(() => setEnrolled(false)); // 403 Forbidden -> not enrolled
+      })
       .catch(() => setCourse(null));
   }, [slug]);
 

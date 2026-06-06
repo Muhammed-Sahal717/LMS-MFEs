@@ -17,11 +17,22 @@ export default function PlayerPage({
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    learningApi
-      .lessons(slug)
-      .then((ls) => {
+    Promise.all([
+      learningApi.lessons(slug),
+      learningApi.progress().catch(() => []) // fallback if no progress tracking
+    ])
+      .then(([ls, prog]) => {
         setLessons(ls);
         setActiveId(ls[0]?.id ?? null);
+        
+        // Populate the completed state using historical progress data
+        const initialCompleted: Record<string, boolean> = {};
+        prog.forEach((p) => {
+          if (p.status === "completed") {
+            initialCompleted[p.lesson_id] = true;
+          }
+        });
+        setCompleted(initialCompleted);
       })
       .catch(() => setLessons([]));
   }, [slug]);

@@ -11,4 +11,5 @@ export const learningApi = {
       `/learning/lessons/${lessonId}/complete`,
       { last_position_seconds: lastPositionSeconds },
     ),
+  progress: () => api.get<LessonProgressOut[]>("/learning/progress"),
 };

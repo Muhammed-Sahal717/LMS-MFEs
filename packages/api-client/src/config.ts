@@ -31,6 +31,18 @@ export function getTenantId(): string {
   return process.env.NEXT_PUBLIC_TENANT_ID ?? "full-lms";
 }
 
+export function hasUrlTenant(): boolean {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname;
+  const parts = hostname.split(".");
+  if (parts.length > 2 || (parts.length === 2 && parts[1] === "localhost")) {
+    const slug = parts[0] ?? "";
+    if (slug !== "www" && slug !== "lms-mf-es-shell") return true;
+  }
+  if (hostname.endsWith("-lms.vercel.app")) return true;
+  return false;
+}
+
 export function setTenantId(tenantId: string) {
   if (typeof window !== "undefined") {
     localStorage.setItem("tenant_id", tenantId);

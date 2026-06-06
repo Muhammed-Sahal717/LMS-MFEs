@@ -5,6 +5,7 @@ export { Card, type CardProps } from "./Card";
 export { Modal, type ModalProps } from "./Modal";
 export { Loader, type LoaderProps } from "./Loader";
 export { ProgressBar, type ProgressBarProps } from "./ProgressBar";
+export { Badge, type BadgeProps } from "./Badge";
 export { Navbar, type NavbarProps, type NavLink } from "./Navbar";
 export { Sidebar, type SidebarProps, type SidebarItem } from "./Sidebar";
 export { AppShell, type AppShellProps } from "./AppShell";

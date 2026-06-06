@@ -9,9 +9,13 @@ import { useAuth } from "@lms/api-client";
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, can, logout, loading } = useAuth();
+  
+  // Next.js usePathname strips the basePath. We must prepend it so the global Sidebar matches correctly.
+  const fullPath = "/dashboard" + (pathname === "/" ? "" : pathname);
+
   return (
     <AppShell
-      activeHref={pathname}
+      activeHref={fullPath}
       can={can}
       actions={
         loading ? null : user ? (

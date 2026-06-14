@@ -66,6 +66,12 @@ export interface UserCreate {
   role_code?: string;
 }
 
+export interface UserUpdate {
+  full_name?: string;
+  is_active?: boolean;
+  role_codes?: string[];
+}
+
 export interface TenantCreate {
   name: string;
   slug: string;
@@ -163,6 +169,15 @@ export interface LessonOut {
   is_preview: boolean;
   video?: VideoAssetOut | null;
   document?: DocumentAssetOut | null;
+  content?: string | null;
+}
+
+export interface LessonCreate {
+  title: string;
+  content_type: LessonType;
+  content?: string | null;
+  is_preview?: boolean;
+  order_index?: number;
 }
 
 export interface LessonProgressOut {

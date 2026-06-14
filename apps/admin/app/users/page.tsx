@@ -9,6 +9,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserOut[] | null>(null);
   const [error, setError] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserOut | null>(null);
 
   function reload() {
     adminApi.users()
@@ -65,7 +66,8 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4 text-right">Status</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
@@ -76,11 +78,16 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoleBadge(u.roles)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {u.is_active 
                         ? <Badge variant="success">Active</Badge> 
                         : <Badge variant="danger">Inactive</Badge>
                       }
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <Button variant="ghost" size="sm" onClick={() => setEditingUser(u)}>
+                        Edit
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -94,6 +101,12 @@ export default function AdminUsersPage() {
         open={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={() => { setShowCreate(false); reload(); }}
+      />
+
+      <EditUserModal
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onUpdated={() => { setEditingUser(null); reload(); }}
       />
     </div>
   );
@@ -159,6 +172,106 @@ function CreateUserModal({
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={saving}>Create User</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function EditUserModal({
+  user,
+  onClose,
+  onUpdated,
+}: {
+  user: UserOut | null;
+  onClose: () => void;
+  onUpdated: () => void;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [roleCode, setRoleCode] = useState("student");
+  const [isActive, setIsActive] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name);
+      setIsActive(user.is_active);
+      setRoleCode(user.roles && user.roles.length > 0 ? user.roles[0].code : "student");
+      setFormError(null);
+    }
+  }, [user]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+    setFormError(null);
+    setSaving(true);
+    try {
+      await adminApi.updateUser(user.id, {
+        full_name: fullName,
+        is_active: isActive,
+        role_codes: [roleCode],
+      });
+      onUpdated();
+    } catch (err: any) {
+      setFormError(err.details ? JSON.stringify(err.details) : err.message || "Failed to update user.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!user) return null;
+
+  return (
+    <Modal open={!!user} onClose={onClose} title="Edit User">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+        
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">Email (Cannot be changed)</label>
+          <input
+            type="email"
+            value={user.email}
+            disabled
+            className="rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-500 cursor-not-allowed"
+          />
+        </div>
+
+        <Input label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">Role</label>
+          <select
+            value={roleCode}
+            onChange={(e) => setRoleCode(e.target.value)}
+            className="rounded-lg border border-gray-300 p-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="tenant_admin">Tenant Admin</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-3 mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <input
+            type="checkbox"
+            id="is-active-toggle"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-600"
+          />
+          <div className="flex flex-col">
+            <label htmlFor="is-active-toggle" className="text-sm font-medium text-gray-900">
+              Active Status
+            </label>
+            <p className="text-xs text-gray-500">Uncheck to block this user from logging in.</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" loading={saving}>Save Changes</Button>
         </div>
       </form>
     </Modal>

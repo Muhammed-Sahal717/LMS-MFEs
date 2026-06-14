@@ -18,6 +18,8 @@ export interface AppShellProps {
    * this returns true. Defaults to showing everything (no gating).
    */
   hasModule?: (moduleCode?: string) => boolean;
+  /** Current user's role codes. */
+  userRoles?: string[];
   children: ReactNode;
 }
 
@@ -30,10 +32,13 @@ export function AppShell({
   actions,
   can = () => true,
   hasModule = () => true,
+  userRoles = [],
   children,
 }: AppShellProps) {
-  const links = navLinks.filter((l) => can(l.permission) && hasModule(l.module));
-  const items = sidebarItems.filter((i) => can(i.permission) && hasModule(i.module));
+  const checkRole = (roles?: string[]) => !roles || roles.some((r) => userRoles.includes(r));
+  
+  const links = navLinks.filter((l) => can(l.permission) && hasModule(l.module) && checkRole(l.roles));
+  const items = sidebarItems.filter((i) => can(i.permission) && hasModule(i.module) && checkRole(i.roles));
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar brand="LMS" links={links} actions={actions} />

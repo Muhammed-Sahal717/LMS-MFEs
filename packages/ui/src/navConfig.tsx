@@ -13,16 +13,16 @@ import type { SidebarItem } from "./Sidebar";
  */
 export const navLinks: NavLink[] = [
   { label: "Courses", href: "/courses", module: "COURSES" }, // Public
-  { label: "My Learning", href: "/learn", permission: "lesson:read", module: "LEARNING" },
-  { label: "Assignments", href: "/assignments", permission: "assignment:read", module: "ASSIGNMENTS" },
-  { label: "Dashboard", href: "/dashboard", permission: "lesson:read", module: "DASHBOARD" }, // Hidden from guests
+  { label: "My Learning", href: "/learn", permission: "lesson:read", module: "LEARNING", roles: ["student"] },
+  { label: "Assignments", href: "/assignments", permission: "assignment:read", module: "ASSIGNMENTS", roles: ["student"] },
+  { label: "Dashboard", href: "/dashboard", permission: "lesson:read", module: "DASHBOARD", roles: ["student"] }, // Hidden from guests
 ];
 
 export const sidebarItems: SidebarItem[] = [
   { label: "Home", href: "/", icon: <Home size={18} /> }, // Public
   { label: "Courses", href: "/courses", icon: <BookOpen size={18} />, module: "COURSES" }, // Public
-  { label: "My Learning", href: "/learn", icon: <Video size={18} />, permission: "lesson:read", module: "LEARNING" },
-  { label: "Assignments", href: "/assignments", icon: <FileText size={18} />, permission: "assignment:read", module: "ASSIGNMENTS" },
-  { label: "Dashboard", href: "/dashboard", icon: <BarChart size={18} />, permission: "lesson:read", module: "DASHBOARD" }, // Hidden from guests
+  { label: "My Learning", href: "/learn", icon: <Video size={18} />, permission: "lesson:read", module: "LEARNING", roles: ["student"] },
+  { label: "Assignments", href: "/assignments", icon: <FileText size={18} />, permission: "assignment:read", module: "ASSIGNMENTS", roles: ["student"] },
+  { label: "Dashboard", href: "/dashboard", icon: <BarChart size={18} />, permission: "lesson:read", module: "DASHBOARD", roles: ["student"] }, // Hidden from guests
   { label: "Admin", href: "/admin", icon: <Settings size={18} />, permission: "admin:access", module: "ADMIN" },
 ];

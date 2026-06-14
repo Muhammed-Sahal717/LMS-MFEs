@@ -3,9 +3,9 @@
 import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card, Input, Loader } from "@lms/ui";
-import { adminApi, type CourseOut, type CourseUpdate } from "@lms/api-client";
-import { ArrowLeft, Save, AlertCircle } from "lucide-react";
+import { Button, Card, Input, Loader, Modal, Badge } from "@lms/ui";
+import { adminApi, type CourseOut, type CourseUpdate, type LessonOut } from "@lms/api-client";
+import { ArrowLeft, Save, AlertCircle, Video, FileText, File } from "lucide-react";
 
 export default function CourseEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -17,11 +17,23 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "curriculum">("general");
 
+  const [lessons, setLessons] = useState<LessonOut[]>([]);
+  const [showAddLesson, setShowAddLesson] = useState(false);
+  const [loadingLessons, setLoadingLessons] = useState(false);
+
   // Form State
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [level, setLevel] = useState<CourseOut["level"]>("beginner");
   const [status, setStatus] = useState<CourseOut["status"]>("draft");
+
+  function loadLessons() {
+    setLoadingLessons(true);
+    adminApi.getCourseLessons(id)
+      .then(setLessons)
+      .catch(console.error)
+      .finally(() => setLoadingLessons(false));
+  }
 
   useEffect(() => {
     adminApi.getCourse(id)
@@ -34,6 +46,8 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+      
+    loadLessons();
   }, [id]);
 
   async function handleSave(e: FormEvent) {
@@ -196,23 +210,143 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       )}
 
       {activeTab === "curriculum" && (
-        <Card>
-          <div className="p-8 text-center flex flex-col items-center justify-center">
-            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
+        <Card className="p-0 overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Course Curriculum</h3>
+              <p className="text-sm text-gray-500 mt-1">Manage the lessons and modules for this course.</p>
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Lesson Management Unavailable</h3>
-            <p className="mt-2 text-gray-500 max-w-md mx-auto">
-              The backend team has not yet deployed the administrative endpoints for uploading and managing lessons. Once the <code className="text-xs bg-gray-100 px-1 py-0.5 rounded text-pink-600">POST /admin/courses/{"{id}"}/lessons</code> endpoint is available, you will be able to build out your curriculum here.
-            </p>
-            <Button disabled className="mt-6" variant="secondary">
-              + Add Lesson (Coming Soon)
+            <Button onClick={() => setShowAddLesson(true)} className="flex items-center gap-2">
+              <FileText size={16} /> Add Lesson
             </Button>
+          </div>
+          
+          <div className="p-0">
+            {loadingLessons ? (
+              <div className="p-12 flex justify-center"><Loader /></div>
+            ) : lessons.length === 0 ? (
+              <div className="p-12 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
+                  <FileText className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">No lessons yet</h3>
+                <p className="mt-2 text-gray-500 max-w-sm mx-auto">
+                  Get started by adding your first text lesson to build out this course curriculum.
+                </p>
+                <Button variant="secondary" className="mt-6" onClick={() => setShowAddLesson(true)}>
+                  Add First Lesson
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50/80">
+                    <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                      <th className="px-6 py-4">Title</th>
+                      <th className="px-6 py-4">Type</th>
+                      <th className="px-6 py-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {lessons.map((lesson) => (
+                      <tr key={lesson.id} className="hover:bg-gray-50/80 transition-colors group">
+                        <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                          {lesson.content_type === "video" ? <Video className="text-brand-500 w-5 h-5" /> : 
+                           lesson.content_type === "document" ? <File className="text-orange-500 w-5 h-5" /> :
+                           <FileText className="text-blue-500 w-5 h-5" />}
+                          {lesson.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500 capitalize">
+                          {lesson.content_type}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {lesson.is_preview ? <Badge variant="warning">Preview</Badge> : <Badge variant="success">Published</Badge>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </Card>
       )}
+
+      <AddLessonModal
+        courseId={id}
+        open={showAddLesson}
+        onClose={() => setShowAddLesson(false)}
+        onCreated={() => {
+          setShowAddLesson(false);
+          loadLessons();
+        }}
+      />
     </div>
+  );
+}
+
+function AddLessonModal({
+  courseId,
+  open,
+  onClose,
+  onCreated,
+}: {
+  courseId: string;
+  open: boolean;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await adminApi.createLesson(courseId, {
+        title,
+        content_type: "text" as any,
+        content,
+        is_preview: false,
+        order_index: 0, // Should calculate dynamically but ok for MVP
+      });
+      setTitle("");
+      setContent("");
+      onCreated();
+    } catch (err: any) {
+      setError(err.message || "Failed to create lesson.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Add New Lesson">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+        
+        <Input label="Lesson Title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+        
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">Lesson Content (Text)</label>
+          <textarea
+            required
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={8}
+            placeholder="Write your lesson content here..."
+            className="rounded-lg border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+          />
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" loading={saving}>Create Lesson</Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

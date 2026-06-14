@@ -37,7 +37,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AppShell activeHref={pathname} can={can} actions={actions}>
+    <AppShell activeHref={pathname} can={can} actions={actions} userRoles={user?.roles?.map(r => r.code) || []}>
       {children}
     </AppShell>
   );

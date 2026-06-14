@@ -18,6 +18,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
       activeHref={fullPath}
       can={can}
       hasModule={hasModule}
+      userRoles={user?.roles?.map(r => r.code) || []}
       actions={
         loading ? null : user ? (
           <div className="flex items-center gap-3">

@@ -9,6 +9,8 @@ export interface SidebarItem {
   permission?: string;
   /** Required module code to show this item (omitted = always shown). */
   module?: string;
+  /** If provided, user must possess AT LEAST ONE of these role codes. */
+  roles?: string[];
 }
 
 export interface SidebarProps {

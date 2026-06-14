@@ -72,18 +72,13 @@ export default function LoginPage() {
         />
         {!isUrlTenant && (
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="tenant-select">
-              Tenant (Local Testing Only)
-            </label>
-            <select
-              id="tenant-select"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <Input
+              id="tenant-input"
+              label="Tenant Slug (Local Testing Only)"
               value={tenantId}
-              onChange={(e) => setLocalTenantId(e.target.value)}
-            >
-              <option value="full-lms">Full LMS (Default)</option>
-              <option value="abc-academy">ABC Academy</option>
-            </select>
+              onChange={(e) => setLocalTenantId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+              placeholder="e.g., full-lms"
+            />
           </div>
         )}
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

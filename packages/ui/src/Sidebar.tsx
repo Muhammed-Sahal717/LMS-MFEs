@@ -7,6 +7,8 @@ export interface SidebarItem {
   icon?: ReactNode;
   /** Required permission to show this item (omitted = always shown). */
   permission?: string;
+  /** Required module code to show this item (omitted = always shown). */
+  module?: string;
 }
 
 export interface SidebarProps {

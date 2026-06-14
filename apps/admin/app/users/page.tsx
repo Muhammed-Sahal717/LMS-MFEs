@@ -1,21 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Loader, Badge, Button } from "@lms/ui";
+import { Card, Loader, Badge, Button, Modal, Input } from "@lms/ui";
 import { adminApi, type UserOut } from "@lms/api-client";
 import { AlertTriangle, UserX } from "lucide-react";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserOut[] | null>(null);
   const [error, setError] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => {
+  function reload() {
     adminApi.users()
       .then(setUsers)
       .catch(() => {
         setError(true);
         setUsers([]);
       });
+  }
+
+  useEffect(() => {
+    reload();
   }, []);
 
   function getRoleBadge(roles: { code: string }[]) {
@@ -32,7 +37,7 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Manage Users</h1>
           <p className="mt-2 text-gray-500">View and manage all registered users in your tenant.</p>
         </div>
-        <Button variant="secondary" className="w-full sm:w-auto">Invite User</Button>
+        <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setShowCreate(true)}>Invite User</Button>
       </div>
 
       {users === null ? (
@@ -84,6 +89,78 @@ export default function AdminUsersPage() {
           </div>
         </Card>
       )}
+
+      <CreateUserModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={() => { setShowCreate(false); reload(); }}
+      />
     </div>
+  );
+}
+
+function CreateUserModal({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [roleCode, setRoleCode] = useState("student");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    setSaving(true);
+    try {
+      await adminApi.createUser({
+        email,
+        password,
+        full_name: fullName,
+        role_code: roleCode,
+      });
+      setEmail(""); setPassword(""); setFullName(""); setRoleCode("student");
+      onCreated();
+    } catch (err: any) {
+      setFormError(err.details ? JSON.stringify(err.details) : err.message || "Failed to create user.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Invite New User">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+        <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input label="Temporary Password" type="text" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">Role</label>
+          <select
+            value={roleCode}
+            onChange={(e) => setRoleCode(e.target.value)}
+            className="rounded-lg border border-gray-300 p-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="tenant_admin">Tenant Admin</option>
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" loading={saving}>Create User</Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

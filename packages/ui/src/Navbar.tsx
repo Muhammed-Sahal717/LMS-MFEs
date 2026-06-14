@@ -7,6 +7,8 @@ export interface NavLink {
   href: string;
   /** Required permission to show this link (omitted = always shown). */
   permission?: string;
+  /** Required module code to show this link (omitted = always shown). */
+  module?: string;
 }
 
 export interface NavbarProps {

@@ -8,7 +8,7 @@ import { useAuth } from "@lms/api-client";
 /** Shared chrome fed with this app's path + the user's permissions/session. */
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { user, can, logout, loading } = useAuth();
+  const { user, can, hasModule, logout, loading } = useAuth();
   
   // Next.js usePathname strips the basePath. We must prepend it so the global Sidebar matches correctly.
   const fullPath = "/courses" + (pathname === "/" ? "" : pathname);
@@ -17,6 +17,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
     <AppShell
       activeHref={fullPath}
       can={can}
+      hasModule={hasModule}
       actions={
         loading ? null : user ? (
           <div className="flex items-center gap-3">

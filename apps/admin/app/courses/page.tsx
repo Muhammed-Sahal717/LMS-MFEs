@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { Button, Card, Input, Loader, Modal } from "@lms/ui";
 import { adminApi, type CourseCreate, type CourseOut } from "@lms/api-client";
 
@@ -25,17 +26,21 @@ export default function AdminCoursesPage() {
       ) : (
         <div className="mt-6 flex flex-col gap-3">
           {courses.map((c) => (
-            <Card key={c.id}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900">{c.title}</div>
-                  <div className="text-xs text-gray-500">
-                    {c.enrollment_count} enrollments · {new Date(c.created_at).toLocaleDateString()}
+            <Link key={c.id} href={`/courses/${c.id}`}>
+              <Card interactive className="hover:border-brand-500 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{c.title}</div>
+                    <div className="text-xs text-gray-500">
+                      {c.enrollment_count} enrollments · {new Date(c.created_at).toLocaleDateString()}
+                    </div>
                   </div>
+                  <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                    {c.status}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500">{c.status}</span>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

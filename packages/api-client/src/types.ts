@@ -59,6 +59,28 @@ export interface RegisterPayload {
   full_name?: string;
 }
 
+export interface UserCreate {
+  email: string;
+  password: string;
+  full_name: string;
+  role_code?: string;
+}
+
+export interface TenantCreate {
+  name: string;
+  slug: string;
+  admin_email?: string;
+  admin_password?: string;
+  modules?: string[];
+}
+
+export interface TenantOut {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+}
+
 export type CourseStatus = "draft" | "published" | "archived";
 export type CourseLevel = "beginner" | "intermediate" | "advanced";
 
@@ -92,6 +114,18 @@ export interface CourseCreate {
   price?: string | number;
   thumbnail_url?: string | null;
   category_id?: string | null;
+}
+
+export interface CourseUpdate {
+  title?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  category_id?: string | null;
+  level?: CourseLevel | null;
+  status?: CourseStatus | null;
+  is_free?: boolean | null;
+  price?: string | number | null;
+  thumbnail_url?: string | null;
 }
 
 export interface EnrollmentOut {

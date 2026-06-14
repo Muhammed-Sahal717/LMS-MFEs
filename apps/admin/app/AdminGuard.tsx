@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@lms/api-client";
 import { Loader } from "@lms/ui";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading) {
@@ -15,12 +17,24 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
       }
 
       // Check if user has an admin or instructor role
-      const hasAccess = user.roles.some((r) => ["admin", "tenant_admin", "super_admin", "instructor"].includes(r.code));
+      const roles = user.roles.map(r => r.code);
+      const isSuper = roles.includes("super_admin");
+      const isAdmin = roles.includes("admin") || roles.includes("tenant_admin");
+      const isInstructor = roles.includes("instructor");
+      
+      let hasAccess = false;
+      const subpath = pathname.replace(/^\/admin/, "") || "/";
+      
+      if (subpath === "/tenants") hasAccess = isSuper;
+      else if (subpath === "/reports") hasAccess = isSuper || isAdmin;
+      else if (subpath === "/users") hasAccess = isSuper || isAdmin || isInstructor; // Instructors can invite students
+      else hasAccess = isSuper || isAdmin || isInstructor; // Default overview/courses
+
       if (!hasAccess) {
         window.location.href = "/dashboard";
       }
     }
-  }, [user, loading]);
+  }, [user, loading, pathname]);
 
   if (loading || !user) {
     return (
@@ -30,7 +44,18 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const hasAccess = user.roles.some((r) => ["admin", "tenant_admin", "super_admin", "instructor"].includes(r.code));
+  const roles = user.roles.map(r => r.code);
+  const isSuper = roles.includes("super_admin");
+  const isAdmin = roles.includes("admin") || roles.includes("tenant_admin");
+  const isInstructor = roles.includes("instructor");
+  
+  let hasAccess = false;
+  const subpath = pathname.replace(/^\/admin/, "") || "/";
+  if (subpath === "/tenants") hasAccess = isSuper;
+  else if (subpath === "/reports") hasAccess = isSuper || isAdmin;
+  else if (subpath === "/users") hasAccess = isSuper || isAdmin || isInstructor;
+  else hasAccess = isSuper || isAdmin || isInstructor;
+
   if (!hasAccess) {
     return null; // Will redirect via useEffect
   }

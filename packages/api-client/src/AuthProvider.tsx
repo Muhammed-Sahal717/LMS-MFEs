@@ -20,6 +20,8 @@ interface AuthContextValue {
   modules: string[];
   /** True if no permission is required, or the user holds it. */
   can: (permission?: string) => boolean;
+  /** True if no module is required, or the tenant licenses it. */
+  hasModule: (moduleCode?: string) => boolean;
   reload: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -80,8 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [permissions],
   );
 
+  const hasModule = useCallback(
+    (moduleCode?: string) => true, // Bypass until backend adds `modules` array to GET /auth/me
+    [],
+  );
+
   return (
-    <AuthContext.Provider value={{ user, loading, permissions, modules, can, reload, logout }}>
+    <AuthContext.Provider value={{ user, loading, permissions, modules, can, hasModule, reload, logout }}>
       {children}
     </AuthContext.Provider>
   );

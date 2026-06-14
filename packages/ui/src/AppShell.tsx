@@ -13,6 +13,11 @@ export interface AppShellProps {
    * this returns true. Defaults to showing everything (no gating).
    */
   can?: (permission?: string) => boolean;
+  /**
+   * Module check from useAuth. Items with a `module` are hidden unless
+   * this returns true. Defaults to showing everything (no gating).
+   */
+  hasModule?: (moduleCode?: string) => boolean;
   children: ReactNode;
 }
 
@@ -20,9 +25,15 @@ export interface AppShellProps {
  * Shared page chrome (Navbar + Sidebar + main) rendered by every zone.
  * Presentational only — no framework router import, so it stays in @lms/ui.
  */
-export function AppShell({ activeHref, actions, can = () => true, children }: AppShellProps) {
-  const links = navLinks.filter((l) => can(l.permission));
-  const items = sidebarItems.filter((i) => can(i.permission));
+export function AppShell({
+  activeHref,
+  actions,
+  can = () => true,
+  hasModule = () => true,
+  children,
+}: AppShellProps) {
+  const links = navLinks.filter((l) => can(l.permission) && hasModule(l.module));
+  const items = sidebarItems.filter((i) => can(i.permission) && hasModule(i.module));
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar brand="LMS" links={links} actions={actions} />

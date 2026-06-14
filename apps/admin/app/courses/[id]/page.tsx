@@ -339,6 +339,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       <th className="px-6 py-4">Title</th>
                       <th className="px-6 py-4">Max Points</th>
                       <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[hsl(var(--border))] bg-[hsl(var(--card))]">
@@ -353,6 +354,11 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {assignment.is_published ? <Badge variant="success">Published</Badge> : <Badge variant="warning">Draft</Badge>}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <Link href={`/courses/${id}/assignments/${assignment.id}`} className="text-sm font-medium text-[hsl(var(--primary))] hover:underline">
+                            View Submissions
+                          </Link>
                         </td>
                       </tr>
                     ))}

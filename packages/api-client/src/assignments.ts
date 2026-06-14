@@ -16,6 +16,8 @@ export const assignmentsApi = {
   grades: () => api.get<Page<GradeOut>>("/assignments/grades/me").then((page) => page.items),
   gradeSubmission: (submissionId: string, payload: any) =>
     api.post<GradeOut>(`/assignments/submissions/${submissionId}/grade`, payload),
+  getSubmissions: (assignmentId: string) =>
+    api.get<SubmissionOut[]>(`/assignments/${assignmentId}/submissions`),
   getQuiz: async (id: string): Promise<QuizOut | null> => {
     const assignment = await api.get<AssignmentOut>(`/assignments/${id}`);
     return assignment.quiz ?? null;

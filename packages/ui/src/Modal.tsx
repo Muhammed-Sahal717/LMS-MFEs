@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { cn } from "./cn";
 
 export interface ModalProps {
@@ -11,10 +12,19 @@ export interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
+  /** Width variant */
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
-/** Portal modal. Closes on Escape and backdrop click. */
-export function Modal({ open, onClose, title, children, footer, className }: ModalProps) {
+const modalSizes = {
+  sm: "max-w-sm",
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
+};
+
+/** Portal dialog. Closes on Escape and backdrop click. Fully dark-mode compatible. */
+export function Modal({ open, onClose, title, children, footer, className, size = "md" }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -30,34 +40,58 @@ export function Modal({ open, onClose, title, children, footer, className }: Mod
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="presentation"
     >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Dialog */}
       <div
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "w-full max-w-lg rounded-[var(--radius-card)] bg-surface shadow-xl",
+          "relative z-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-300",
+          "rounded-[var(--radius-xl)] border border-[hsl(var(--border))]",
+          "bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))]",
+          "shadow-[var(--shadow-xl)]",
+          modalSizes[size],
           className,
         )}
       >
+        {/* Header */}
         {title ? (
-          <div className="flex items-center justify-between border-b border-border px-5 py-3">
-            <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+          <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-6 py-4">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-[hsl(var(--foreground))]">
+              {title}
+            </h2>
             <button
               onClick={onClose}
-              aria-label="Close"
-              className="rounded p-1 text-gray-500 hover:bg-surface-muted"
+              aria-label="Close dialog"
+              className={cn(
+                "rounded-[var(--radius-sm)] p-1.5 transition-colors",
+                "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))]",
+              )}
             >
-              ✕
+              <X size={18} />
             </button>
           </div>
         ) : null}
-        <div className="px-5 py-4">{children}</div>
+
+        {/* Body */}
+        <div className="px-6 py-5">{children}</div>
+
+        {/* Footer */}
         {footer ? (
-          <div className="flex justify-end gap-2 border-t border-border px-5 py-3">{footer}</div>
+          <div className="flex items-center justify-end gap-2 border-t border-[hsl(var(--border))] px-6 py-4">
+            {footer}
+          </div>
         ) : null}
       </div>
     </div>,

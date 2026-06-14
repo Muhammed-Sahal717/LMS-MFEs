@@ -36,15 +36,18 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const checkRole = (roles?: string[]) => !roles || roles.some((r) => userRoles.includes(r));
-  
+
   const links = navLinks.filter((l) => can(l.permission) && hasModule(l.module) && checkRole(l.roles));
   const items = sidebarItems.filter((i) => can(i.permission) && hasModule(i.module) && checkRole(i.roles));
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[hsl(var(--background))]">
       <Navbar brand="LMS" links={links} actions={actions} />
       <div className="flex flex-1">
         <Sidebar items={items} activeHref={activeHref} />
-        <main className="flex-1 p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-screen-2xl p-6 lg:p-8">{children}</div>
+        </main>
       </div>
     </div>
   );

@@ -11,12 +11,7 @@ import type { SidebarItem } from "./Sidebar";
  * (also approximates licensed-module visibility — an unlicensed module's
  * permissions won't be granted).
  */
-export const navLinks: NavLink[] = [
-  { label: "Courses", href: "/courses", module: "COURSES" }, // Public
-  { label: "My Learning", href: "/learn", permission: "lesson:read", module: "LEARNING", roles: ["student"] },
-  { label: "Assignments", href: "/assignments", permission: "assignment:read", module: "ASSIGNMENTS", roles: ["student"] },
-  { label: "Dashboard", href: "/dashboard", permission: "lesson:read", module: "DASHBOARD", roles: ["student"] }, // Hidden from guests
-];
+export const navLinks: NavLink[] = [];
 
 export const sidebarItems: SidebarItem[] = [
   { label: "Home", href: "/", icon: <Home size={18} /> }, // Public

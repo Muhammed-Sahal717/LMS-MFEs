@@ -16,7 +16,7 @@ export interface NavLink {
 export interface NavbarProps {
   brand?: ReactNode;
   links?: NavLink[];
-  /** Right-side slot: user menu, login button, etc. */
+  /** Right-side slot: user menu, login button, theme toggle, etc. */
   actions?: ReactNode;
   className?: string;
 }
@@ -25,30 +25,57 @@ export interface NavbarProps {
  * Top navigation bar shared across all MFE zones.
  * Links render as plain <a> so navigating between zones does a full reload
  * (correct for Multi-Zones — each zone is a separate Next.js app).
+ * Glassmorphism sticky header with dark mode support.
  */
 export function Navbar({ brand, links = [], actions, className }: NavbarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 flex h-14 items-center gap-6 border-b border-border bg-surface px-6",
+        "sticky top-0 z-40 h-14 w-full",
+        "border-b border-[hsl(var(--border))]",
+        "bg-[hsl(var(--background)/0.8)] backdrop-blur-md",
+        "supports-[backdrop-filter]:bg-[hsl(var(--background)/0.6)]",
         className,
       )}
     >
-      <a href="/" className="text-lg font-bold text-brand-700">
-        {brand ?? "LMS"}
-      </a>
-      <nav className="flex items-center gap-4">
-        {links.map((l) => (
-          <a
-            key={l.href}
-            href={l.href}
-            className="text-sm font-medium text-gray-600 hover:text-brand-700"
-          >
-            {l.label}
-          </a>
-        ))}
-      </nav>
-      <div className="ml-auto flex items-center gap-3">{actions}</div>
+      <div className="flex h-full items-center gap-6 px-6">
+        {/* Brand */}
+        <a
+          href="/"
+          className="flex items-center gap-2 text-lg font-bold text-[hsl(var(--foreground))] transition-opacity hover:opacity-80"
+        >
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-xs font-black text-[hsl(var(--primary-foreground))]">
+            L
+          </span>
+          {brand ?? "LMS"}
+        </a>
+
+        {/* Divider */}
+        {links.length > 0 && (
+          <div className="h-5 w-px bg-[hsl(var(--border))]" aria-hidden="true" />
+        )}
+
+        {/* Nav links */}
+        <nav className="flex items-center gap-1">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className={cn(
+                "rounded-[var(--radius-sm)] px-3 py-1.5",
+                "text-sm font-medium text-[hsl(var(--muted-foreground))]",
+                "transition-colors hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))]",
+              )}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+
+        {/* Right slot */}
+        <div className="ml-auto flex items-center gap-2">{actions}</div>
+      </div>
     </header>
   );
 }

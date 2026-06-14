@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, Button, Loader, ProgressBar } from "@lms/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, ProgressBar, EmptyState, Skeleton } from "@lms/ui";
 import { learningApi, type CourseOut } from "@lms/api-client";
+import { GraduationCap } from "lucide-react";
 
 export default function MyLearningPage() {
   const [courses, setCourses] = useState<CourseOut[] | null>(null);
@@ -13,32 +14,52 @@ export default function MyLearningPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-bold text-gray-900">My Learning</h1>
-      <p className="mt-2 text-gray-600">Continue where you left off.</p>
+    <div className="mx-auto max-w-5xl animate-in fade-in duration-500">
+      <h1 className="text-3xl font-extrabold text-[hsl(var(--foreground))] tracking-tight">My Learning</h1>
+      <p className="mt-2 text-[hsl(var(--muted-foreground))]">Continue where you left off.</p>
 
       {courses === null ? (
-        <div className="mt-10 flex justify-center">
-          <Loader size="lg" label="Loading…" />
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+              <CardHeader className="pb-4">
+                <Skeleton className="h-6 w-3/4 rounded-md" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-2 w-full rounded-full" />
+                <div className="mt-6 flex items-center justify-between">
+                  <Skeleton className="h-6 w-20 rounded-[var(--radius-sm)]" />
+                  <Skeleton className="h-8 w-24 rounded-md" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : courses.length === 0 ? (
-        <p className="mt-10 text-gray-500">
-          Not enrolled in any course yet.{" "}
-          <a href="/courses" className="text-brand-700 hover:underline">
-            Browse catalog →
-          </a>
-        </p>
+        <EmptyState 
+           icon={<GraduationCap className="w-8 h-8" />}
+           title="Not enrolled in any course yet."
+           description="Explore our catalog and find the perfect course for you."
+           action={<Link href="/courses"><Button>Browse Catalog</Button></Link>}
+           variant="dashed"
+           className="mt-8"
+        />
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {courses.map((c) => (
-            <Card key={c.id} header={<span>{c.title}</span>}>
-              <ProgressBar value={0} showLabel />
-              <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-                <span>{c.enrollment_count} enrolled</span>
-                <Link href={`/${c.id}`}>
-                  <Button size="sm">Continue</Button>
-                </Link>
-              </div>
+            <Card key={c.id} className="transition-all hover:shadow-[var(--shadow-md)] hover:border-[hsl(var(--primary)/0.5)]">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--primary))] transition-colors">{c.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProgressBar value={0} showLabel />
+                <div className="mt-6 flex items-center justify-between text-xs text-[hsl(var(--muted-foreground))]">
+                  <span className="bg-[hsl(var(--muted))] px-2 py-1 rounded-[var(--radius-sm)] font-medium text-[hsl(var(--foreground))]">{c.enrollment_count} enrolled</span>
+                  <Link href={`/${c.id}`}>
+                    <Button size="sm">Continue</Button>
+                  </Link>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>

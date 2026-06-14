@@ -1,48 +1,69 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./cn";
 import { Loader } from "./Loader";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
+const buttonVariants = cva(
+  // Base classes
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-md)]",
+    "text-sm font-medium transition-all duration-150",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+  ],
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm hover:bg-[hsl(var(--primary)/0.9)] active:scale-[0.98]",
+        destructive:
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] shadow-sm hover:bg-[hsl(var(--destructive)/0.9)] active:scale-[0.98]",
+        outline:
+          "border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] shadow-sm hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]",
+        secondary:
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] shadow-sm hover:bg-[hsl(var(--secondary)/0.8)] active:scale-[0.98]",
+        ghost:
+          "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]",
+        link:
+          "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
+        // Backward compat aliases
+        primary:
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm hover:bg-[hsl(var(--primary)/0.9)] active:scale-[0.98]",
+        danger:
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] shadow-sm hover:bg-[hsl(var(--destructive)/0.9)] active:scale-[0.98]",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-[var(--radius-sm)] px-3 text-xs",
+        md: "h-9 px-4 text-sm",
+        lg: "h-11 rounded-[var(--radius-lg)] px-8 text-base",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   loading?: boolean;
   fullWidth?: boolean;
 }
 
-const variants: Record<Variant, string> = {
-  primary: "bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500",
-  secondary:
-    "bg-white text-brand-700 border border-border hover:bg-surface-muted focus-visible:ring-brand-500",
-  ghost: "bg-transparent text-gray-700 hover:bg-surface-muted focus-visible:ring-gray-400",
-  danger: "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
-};
-
-const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-base",
-};
-
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "md", loading, fullWidth, disabled, className, children, ...rest },
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = "default", size = "default", loading, fullWidth, disabled, className, children, ...rest },
   ref,
 ) {
   return (
     <button
       ref={ref}
       disabled={disabled || loading}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-60",
-        variants[variant],
-        sizes[size],
-        fullWidth && "w-full",
-        className,
-      )}
+      className={cn(buttonVariants({ variant, size }), fullWidth && "w-full", className)}
       {...rest}
     >
       {loading ? <Loader size="sm" /> : null}
@@ -50,3 +71,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+
+Button.displayName = "Button";
+export { Button, buttonVariants };

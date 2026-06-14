@@ -1,8 +1,5 @@
+/* Global styles — inherits shared LMS Tailwind v4 token system. */
 @import "@lms/tailwind-config/shared.css";
-@source "./**/*.{ts,tsx}";
 
-body {
-  background-color: var(--color-surface-muted);
-  color: #111827;
-  font-family: var(--font-sans);
-}
+/* Scan this app's own files. */
+@source "./**/*.{ts,tsx}";

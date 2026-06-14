@@ -41,29 +41,62 @@ Each of the following zones resides in `apps/` and contains its own `package.jso
 6. **`dashboard` (Port 3005)**: The student portal for grades and progress (`/dashboard`).
 7. **`admin` (Port 3006)**: The management suite for user CRUD and curriculum building (`/admin`).
 
-### 3.2 How the Zones Connect
+### 3.2 How the Zones Connect (The Next.js Rewrites)
 
-The magic of the MFE orchestration happens in the `shell` application's `next.config.ts`. The Shell uses Next.js `rewrites` to act as an invisible reverse proxy.
+The magic of the MFE orchestration happens in the `shell` application's `next.config.ts`. The Shell uses Next.js `rewrites` to act as an invisible reverse proxy to the other local development servers or deployed zones.
 
-```text
-                 ┌─────────────────────────────────────┐
- browser ──────▶ │  shell (host)  http://localhost:3000 │  owns the root origin
-                 │  next.config.ts  async rewrites()    │
-                 └───────┬───────────┬───────────┬──────┘
-                 /auth/* │  /courses/*│ /dashboard/* ...  (path prefix → zone)
-                         ▼           ▼           ▼
-                   auth-mfe     catalog-mfe   dashboard-mfe   ... each its own
-                    :3001         :3002          :3005          Next.js app
+Here is the exact code snippet from `apps/shell/next.config.ts` that stitches the applications together:
+
+```typescript
+// apps/shell/next.config.ts
+const zone = (name: string, fallbackPort: number) =>
+  process.env[`ZONE_${name}_URL`] ?? `http://localhost:${fallbackPort}`;
+
+const nextConfig: NextConfig = {
+  transpilePackages: ["@lms/ui", "@lms/api-client"], // Ensures shared packages are compiled
+  async rewrites() {
+    const zoneRewrites = (path: string, name: string, port: number) => [
+      { source: `${path}`, destination: `${zone(name, port)}${path}` },
+      { source: `${path}/:path+`, destination: `${zone(name, port)}${path}/:path+` },
+    ];
+
+    return [
+      ...zoneRewrites("/auth", "AUTH", 3001),
+      ...zoneRewrites("/courses", "CATALOG", 3002),
+      ...zoneRewrites("/learn", "LEARNING", 3003),
+      ...zoneRewrites("/assignments", "ASSIGN", 3004),
+      ...zoneRewrites("/dashboard", "DASHBOARD", 3005),
+      ...zoneRewrites("/admin", "ADMIN", 3006),
+    ];
+  },
+};
 ```
 
-When a user navigates to `https://platform.com/admin/users`, the Shell invisibly proxies the HTTP request to the `admin` zone. Because the Admin zone has a `basePath` of `/admin`, the routing perfectly aligns. The browser never refreshes, and the user never realizes they have crossed server boundaries.
+When a user navigates to `https://platform.com/admin/users`, the Shell invisibly proxies the HTTP request to the `admin` zone running on port 3006. Because the `admin` zone defines `basePath: "/admin"` in its own `next.config.ts`, the routing perfectly aligns. The browser never refreshes, avoiding the performance hit of a full page load.
 
-### 3.3 Shared NPM Packages
+### 3.3 Shared NPM Packages (Turborepo Workspaces)
 
-To maintain design consistency and reduce duplicated code across the 7 standalone apps, the workspace utilizes local NPM packages in the `packages/` directory:
+To maintain design consistency and reduce duplicated code across the 7 standalone apps, the workspace utilizes local NPM packages in the `packages/` directory, managed via PNPM workspaces (`pnpm-workspace.yaml`).
 
-- **`@lms/ui`**: Contains the canonical React components (`AppShell`, `Sidebar`, `Button`, `Modal`). If a component is updated here, it instantly propagates across all MFEs.
-- **`@lms/api-client`**: The single source of truth for the Axios configuration, TypeScript DTOs, and JWT token rotation logic.
+Each Next.js application simply installs these packages by referencing them in their `package.json` like standard NPM dependencies:
+
+```json
+// apps/dashboard/package.json
+"dependencies": {
+  "@lms/api-client": "workspace:*",
+  "@lms/ui": "workspace:*"
+}
+```
+
+The core shared packages include:
+
+1. **`@lms/ui`**: Contains the canonical React components (`AppShell`, `Sidebar`, `Button`, `Modal`) styled with Tailwind CSS and Shadcn aesthetic. 
+   * **Usage**: `import { Button } from "@lms/ui";`
+   * **Benefit**: If a component's padding or color is updated here, running `pnpm dev` immediately hot-reloads the change across all 7 separate MFE applications.
+   
+2. **`@lms/api-client`**: The single source of truth for the Axios configuration, TypeScript DTOs, and global auth state context.
+   * **Usage**: `import { useAuth, coursesApi } from "@lms/api-client";`
+   * **Benefit**: Handles JWT token rotation and `X-Tenant-ID` header injection globally, meaning individual MFEs never have to worry about HTTP authorization logic.
 
 ---
 

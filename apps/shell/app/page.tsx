@@ -24,11 +24,29 @@ export default function LandingPage() {
               {loading ? (
                 <div className="h-10 w-32 animate-pulse rounded-md bg-gray-200" />
               ) : user ? (
-                <a href="/dashboard">
-                  <Button size="lg" className="w-full sm:w-auto px-8 shadow-lg shadow-brand-500/30">
-                    Go to Dashboard
-                  </Button>
-                </a>
+                (() => {
+                  const isAdmin = user.roles?.some(r => r.code === "tenant_admin" || r.code === "super_admin");
+                  const isInstructor = user.roles?.some(r => r.code === "instructor");
+                  
+                  let destination = "/dashboard";
+                  let buttonLabel = "Go to Dashboard";
+                  
+                  if (isAdmin) {
+                    destination = "/admin";
+                    buttonLabel = "Go to Admin Panel";
+                  } else if (isInstructor) {
+                    destination = "/admin/courses"; // Assuming instructors manage courses in admin view
+                    buttonLabel = "Instructor Dashboard";
+                  }
+
+                  return (
+                    <a href={destination}>
+                      <Button size="lg" className="w-full sm:w-auto px-8 shadow-lg shadow-brand-500/30">
+                        {buttonLabel}
+                      </Button>
+                    </a>
+                  );
+                })()
               ) : (
                 <a href="/auth/register">
                   <Button size="lg" className="w-full sm:w-auto px-8 shadow-lg shadow-brand-500/30">

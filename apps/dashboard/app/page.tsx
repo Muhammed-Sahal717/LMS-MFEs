@@ -1,43 +1,79 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Card, Loader, Badge, Button } from "@lms/ui";
+import { Loader, Badge, Button } from "@lms/ui";
 import { dashboardApi, useAuth, type DashboardOut } from "@lms/api-client";
-import { BookOpen, Video, FileText, Clock, CheckCircle, Activity, Rocket, Circle, Hand } from "lucide-react";
+import { BookOpen, Video, FileText, Clock, CheckCircle, Activity, Rocket, Circle, Hand, GraduationCap, BookMarked, CalendarDays, ArrowRight } from "lucide-react";
 
-function StatCard({ icon, label, value, colorClass }: { icon: ReactNode; label: string; value: number, colorClass: string }) {
+function StatCard({ icon, label, value, description }: { icon: ReactNode; label: string; value: number; description?: string }) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-5">
-        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${colorClass} shadow-sm [&>svg]:w-6 [&>svg]:h-6`}>
+    <div className="rounded-xl border border-gray-200 bg-white text-gray-950 shadow-sm transition-all hover:shadow-md hover:border-gray-300">
+      <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+        <h3 className="tracking-tight text-sm font-medium text-gray-500">{label}</h3>
+        <div className="text-gray-400">
           {icon}
         </div>
-        <div>
-          <div className="text-3xl font-extrabold text-gray-900">{value}</div>
-          <div className="text-sm font-medium text-gray-500 uppercase tracking-wide mt-1">{label}</div>
-        </div>
       </div>
-    </Card>
+      <div className="p-6 pt-0">
+        <div className="text-3xl font-bold tracking-tight">{value}</div>
+        {description && (
+          <p className="text-xs text-gray-500 mt-1">{description}</p>
+        )}
+      </div>
+    </div>
   );
 }
 
-const activityConfig: Record<string, { icon: ReactNode, color: string }> = {
-  lesson: { icon: <Video size={16} />, color: "bg-blue-100 text-blue-600" },
-  assignment: { icon: <FileText size={16} />, color: "bg-amber-100 text-amber-600" },
-  enrollment: { icon: <BookOpen size={16} />, color: "bg-green-100 text-green-600" },
+const activityConfig: Record<string, { icon: ReactNode, color: string, bgColor: string }> = {
+  lesson: { icon: <Video size={16} />, color: "text-blue-600", bgColor: "bg-blue-100" },
+  assignment: { icon: <FileText size={16} />, color: "text-amber-600", bgColor: "bg-amber-100" },
+  enrollment: { icon: <BookOpen size={16} />, color: "text-green-600", bgColor: "bg-green-100" },
 };
+
+function DashboardCard({ title, icon, children, footer, description }: { title: string; icon: ReactNode; children: ReactNode; footer?: ReactNode; description?: string }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white text-gray-950 shadow-sm flex flex-col h-full">
+      <div className="flex flex-col space-y-1.5 p-6">
+        <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2 text-lg">
+          {icon}
+          {title}
+        </h3>
+        {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+      </div>
+      <div className="p-6 pt-0 flex-1">
+        {children}
+      </div>
+      {footer && (
+        <div className="flex items-center p-6 pt-0">
+          {footer}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardOut | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    if (user && !user.roles?.some(r => r.code === "student")) {
+      const isAdmin = user.roles?.some(r => r.code === "tenant_admin" || r.code === "super_admin");
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/courses");
+      }
+      return;
+    }
     dashboardApi.summary().then(setData).catch(() => setData(null));
-  }, []);
+  }, [user, router]);
 
   if (!data) {
     return (
-      <div className="mt-20 flex flex-col items-center justify-center">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <Loader size="lg" label="Loading your dashboard…" />
       </div>
     );
@@ -46,77 +82,123 @@ export default function DashboardPage() {
   const firstName = user?.full_name?.split(" ")[0] || user?.email || "Student";
 
   return (
-    <div className="mx-auto max-w-6xl animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-            Welcome back, {firstName} <Hand className="text-amber-400 w-7 h-7 inline-block animate-pulse" />
-          </h1>
-          <p className="mt-2 text-gray-500">Here is your learning overview for today.</p>
+    <div className="mx-auto max-w-6xl animate-in fade-in duration-500 pb-12">
+      {/* Header section with Shadcn-like typography */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+            Welcome back, {firstName} <Hand className="text-amber-400 w-7 h-7 inline-block animate-pulse origin-bottom-right" />
+          </h2>
+          <p className="text-gray-500 text-lg">Here is an overview of your learning progress.</p>
         </div>
-        <a href="/courses">
-          <Button variant="secondary">Browse Courses</Button>
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="/courses">
+            <Button variant="secondary" className="font-medium shadow-sm border border-gray-200">
+              <BookMarked className="w-4 h-4 mr-2 text-gray-500" />
+              Browse Catalog
+            </Button>
+          </a>
+        </div>
       </div>
 
-      {/* Stat widgets */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <StatCard icon={<BookOpen />} label="Enrolled" value={data.enrolled_courses} colorClass="bg-brand-50 text-brand-600 border border-brand-100" />
-        <StatCard icon={<Video />} label="Completed" value={data.completed_lessons} colorClass="bg-indigo-50 text-indigo-600 border border-indigo-100" />
-        <StatCard icon={<FileText />} label="Pending" value={data.pending_assignments} colorClass="bg-rose-50 text-rose-600 border border-rose-100" />
+      {/* Bento Grid Stats */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-8">
+        <StatCard 
+          icon={<GraduationCap className="w-5 h-5 text-brand-600" />} 
+          label="Active Enrollments" 
+          value={data.enrolled_courses} 
+          description="Courses currently in progress"
+        />
+        <StatCard 
+          icon={<Video className="w-5 h-5 text-indigo-600" />} 
+          label="Lessons Completed" 
+          value={data.completed_lessons} 
+          description="Total learning modules finished"
+        />
+        <StatCard 
+          icon={<FileText className="w-5 h-5 text-amber-600" />} 
+          label="Pending Assignments" 
+          value={data.pending_assignments} 
+          description="Tasks requiring your attention"
+        />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Upcoming assignments */}
-        <Card header={<div className="flex items-center gap-2"><Clock className="w-5 h-5 text-gray-500" /> Upcoming Assignments</div>}>
-          {data.pending_assignments === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <CheckCircle className="w-12 h-12 text-green-500 mb-3" />
-              <h3 className="text-base font-semibold text-gray-900">All caught up!</h3>
-              <p className="mt-1 text-sm text-gray-500 max-w-[250px]">You have no pending assignments due anytime soon.</p>
-            </div>
-          ) : (
-            <div className="py-4">
-              <Badge variant="warning">Action Required</Badge>
-              <p className="mt-3 text-sm text-gray-600">You have {data.pending_assignments} assignments waiting for submission. Please check the assignments tab.</p>
-              <a href="/assignments" className="mt-4 inline-block text-sm font-medium text-brand-600 hover:text-brand-500">
-                View Assignments &rarr;
-              </a>
-            </div>
-          )}
-        </Card>
-
-        {/* Recent activity Timeline */}
-        <Card header={<div className="flex items-center gap-2"><Activity className="w-5 h-5 text-gray-500" /> Recent Activity</div>}>
-          {data.recent_activity.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Rocket className="w-12 h-12 text-brand-500 mb-3" />
-              <h3 className="text-base font-semibold text-gray-900">No activity yet</h3>
-              <p className="mt-1 text-sm text-gray-500 max-w-[250px]">Enroll in a course to start tracking your learning journey.</p>
-            </div>
-          ) : (
-            <div className="relative pl-4 border-l-2 border-gray-100 py-2 space-y-6">
-              {data.recent_activity.map((act, index) => {
-                const config = activityConfig[act.resource] ?? { icon: <Circle size={16} />, color: "bg-gray-100 text-gray-600" };
-                return (
-                  <div key={`${act.resource_id ?? "activity"}-${index}`} className="relative pl-6">
-                    <span className={`absolute -left-[35px] flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-white ${config.color}`}>
-                      {config.icon}
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">
-                        {act.action} <span className="capitalize">{act.resource}</span>
-                      </span>
-                      <span className="text-xs text-gray-400 mt-0.5">
-                        {new Date(act.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                    </div>
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-7 lg:gap-8">
+        
+        {/* Left Column (Wider) */}
+        <div className="md:col-span-4 space-y-6">
+          <DashboardCard 
+            title="Upcoming Assignments" 
+            icon={<CalendarDays className="w-5 h-5 text-gray-500" />}
+            description="Assignments due in the next 7 days"
+          >
+            {data.pending_assignments === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-100 rounded-lg bg-gray-50/50">
+                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">All caught up!</h3>
+                <p className="mt-1 text-sm text-gray-500 max-w-[250px]">You have no pending assignments due anytime soon. Keep up the great work!</p>
+              </div>
+            ) : (
+              <div className="py-2">
+                <div className="flex items-start gap-4 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                  <div className="mt-1">
+                    <Badge variant="warning" className="px-2.5 py-0.5 text-xs font-semibold">Action Required</Badge>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
+                  <div>
+                    <h4 className="text-sm font-medium text-amber-900">Pending Submissions</h4>
+                    <p className="mt-1 text-sm text-amber-700">You have {data.pending_assignments} assignments waiting for submission. Make sure to complete them before the deadline.</p>
+                    <a href="/assignments" className="mt-3 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors">
+                      View all assignments
+                      <ArrowRight className="ml-1 w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DashboardCard>
+        </div>
+
+        {/* Right Column */}
+        <div className="md:col-span-3 space-y-6">
+          <DashboardCard 
+            title="Recent Activity" 
+            icon={<Activity className="w-5 h-5 text-gray-500" />}
+            description="Your latest actions across the platform"
+          >
+            {data.recent_activity.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-100 rounded-lg">
+                <Rocket className="w-10 h-10 text-gray-300 mb-3" />
+                <h3 className="text-sm font-medium text-gray-900">No activity yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Enroll in a course to start your journey.</p>
+              </div>
+            ) : (
+              <div className="relative pl-2 space-y-6 before:absolute before:inset-y-0 before:left-[19px] before:w-px before:bg-gray-200">
+                {data.recent_activity.map((act, index) => {
+                  const config = activityConfig[act.resource] ?? { icon: <Circle size={14} />, color: "text-gray-600", bgColor: "bg-gray-100" };
+                  return (
+                    <div key={`${act.resource_id ?? "activity"}-${index}`} className="relative flex gap-4">
+                      <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-4 border-white ${config.bgColor} ${config.color}`}>
+                        {config.icon}
+                      </div>
+                      <div className="flex flex-col pt-1.5 pb-2">
+                        <p className="text-sm font-medium text-gray-900 leading-none">
+                          {act.action} <span className="capitalize">{act.resource}</span>
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1.5">
+                          {new Date(act.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </DashboardCard>
+        </div>
+        
       </div>
     </div>
   );

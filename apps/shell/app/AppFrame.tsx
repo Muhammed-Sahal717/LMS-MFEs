@@ -2,35 +2,54 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { AppShell, Button } from "@lms/ui";
+import { AppShell, Button, Avatar, ThemeToggle, Separator } from "@lms/ui";
 import { useAuth } from "@lms/api-client";
 
 /** Shared chrome fed with this app's path + the user's permissions/session. */
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, can, logout, loading } = useAuth();
-  const actions = loading ? null : user ? (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-gray-600">{user.full_name ?? user.email}</span>
-      <Button size="sm" variant="secondary" onClick={logout}>
-        Logout
+
+  const actions = loading ? (
+    <div className="h-8 w-24 animate-pulse rounded-lg bg-[hsl(var(--muted))]" />
+  ) : user ? (
+    <div className="flex items-center gap-2">
+      <ThemeToggle />
+      <Separator orientation="vertical" className="h-5" />
+      <div className="flex items-center gap-2.5">
+        <Avatar name={user.full_name ?? user.email} size="sm" />
+        <span className="hidden text-sm font-medium text-[hsl(var(--foreground))] sm:block">
+          {user.full_name ?? user.email}
+        </span>
+      </div>
+      <Button size="sm" variant="outline" onClick={logout}>
+        Sign out
       </Button>
     </div>
   ) : (
-    <a href="/auth/login">
-      <Button size="sm">Login</Button>
-    </a>
+    <div className="flex items-center gap-2">
+      <ThemeToggle />
+      <a href="/auth/login">
+        <Button size="sm">Sign in</Button>
+      </a>
+    </div>
   );
 
-  // For the marketing landing page, we don't want the Sidebar or the constrained padding.
-  // We still want the Navbar for the login button.
+  // Landing page — no sidebar
   if (pathname === "/") {
     return (
-      <div className="flex min-h-screen flex-col">
-        <div className="border-b border-border bg-surface px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
-          <div className="font-bold text-brand-600 text-xl tracking-tight">LMS</div>
-          {actions}
-        </div>
+      <div className="flex min-h-screen flex-col bg-[hsl(var(--background))]">
+        <header className="sticky top-0 z-40 h-14 w-full border-b border-[hsl(var(--border))] bg-[hsl(var(--background)/0.8)] backdrop-blur-md supports-[backdrop-filter]:bg-[hsl(var(--background)/0.6)]">
+          <div className="flex h-full items-center justify-between px-6">
+            <a href="/" className="flex items-center gap-2 font-bold text-[hsl(var(--foreground))]">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[hsl(var(--primary))] text-xs font-black text-[hsl(var(--primary-foreground))]">
+                L
+              </span>
+              LMS
+            </a>
+            {actions}
+          </div>
+        </header>
         {children}
       </div>
     );

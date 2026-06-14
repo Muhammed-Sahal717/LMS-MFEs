@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Loader } from "@lms/ui";
+import { Card, CardContent, CardHeader, CardTitle, Loader } from "@lms/ui";
 import { adminApi, type ReportOut } from "@lms/api-client";
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
-      <div className="mt-1 text-sm text-gray-500">{label}</div>
+    <Card className="transition-all hover:shadow-[var(--shadow-md)] hover:border-[hsl(var(--primary)/0.5)]">
+      <CardContent className="p-6">
+        <div className="text-3xl font-bold text-[hsl(var(--foreground))]">{value}</div>
+        <div className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">{label}</div>
+      </CardContent>
     </Card>
   );
 }
@@ -25,8 +27,8 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+    <div className="animate-in fade-in duration-500">
+      <h1 className="text-3xl font-extrabold text-[hsl(var(--foreground))] tracking-tight">Reports</h1>
 
       <div className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-4">
         <Stat label="Courses" value={a.courses} />
@@ -36,17 +38,21 @@ export default function AdminReportsPage() {
       </div>
 
       {a.active_modules && a.active_modules.length > 0 && (
-        <Card className="mt-6" header={<span>Active Modules</span>}>
-          <div className="flex flex-wrap gap-2">
-            {a.active_modules.map((m) => (
-              <span key={m} className="rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700">
-                {m}
-              </span>
-            ))}
-          </div>
+        <Card className="mt-6 transition-all hover:shadow-[var(--shadow-md)]">
+          <CardHeader>
+            <CardTitle>Active Modules</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {a.active_modules.map((m) => (
+                <span key={m} className="rounded-full bg-[hsl(var(--primary)/0.15)] px-3 py-1 text-sm font-medium text-[hsl(var(--primary))]">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </CardContent>
         </Card>
       )}
     </div>
   );
 }
-

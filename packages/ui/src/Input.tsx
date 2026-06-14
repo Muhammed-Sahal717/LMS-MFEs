@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef, useId, useState, type InputHTMLAttributes } from "react";
 import { cn } from "./cn";
 import { Eye, EyeOff } from "lucide-react";
@@ -21,7 +23,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label ? (
-        <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium leading-none text-[hsl(var(--foreground))] peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
           {label}
         </label>
       ) : null}
@@ -31,10 +36,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           type={currentType}
           aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-hint` : undefined}
           className={cn(
-            "h-10 w-full rounded-lg border bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400",
-            "focus:outline-none focus:ring-2 focus:ring-brand-500",
-            error ? "border-red-500 focus:ring-red-500" : "border-border",
+            "flex h-9 w-full rounded-[var(--radius-md)] border border-[hsl(var(--input))]",
+            "bg-transparent px-3 py-1 text-sm text-[hsl(var(--foreground))]",
+            "shadow-sm transition-colors",
+            "placeholder:text-[hsl(var(--muted-foreground))]",
+            "file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[hsl(var(--foreground))]",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            error
+              ? "border-[hsl(var(--destructive))] focus-visible:ring-[hsl(var(--destructive))]"
+              : "border-[hsl(var(--input))]",
             isPassword ? "pr-10" : "",
             className,
           )}
@@ -44,17 +57,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors focus:outline-none"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
       </div>
       {error ? (
-        <p className="text-xs text-red-600">{error}</p>
+        <p id={`${inputId}-error`} className="text-xs text-[hsl(var(--destructive))]">
+          {error}
+        </p>
       ) : helperText ? (
-        <p className="text-xs text-gray-500">{helperText}</p>
+        <p id={`${inputId}-hint`} className="text-xs text-[hsl(var(--muted-foreground))]">
+          {helperText}
+        </p>
       ) : null}
     </div>
   );

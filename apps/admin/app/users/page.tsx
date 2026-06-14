@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Loader, Badge, Button, Modal, Input } from "@lms/ui";
+import { 
+  Loader, Badge, Button, Modal, Input, EmptyState, 
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Select
+} from "@lms/ui";
 import { adminApi, type UserOut } from "@lms/api-client";
 import { AlertTriangle, UserX } from "lucide-react";
 
@@ -35,8 +38,8 @@ export default function AdminUsersPage() {
     <div className="mx-auto max-w-6xl animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Manage Users</h1>
-          <p className="mt-2 text-gray-500">View and manage all registered users in your tenant.</p>
+          <h1 className="text-3xl font-extrabold text-[hsl(var(--foreground))] tracking-tight">Manage Users</h1>
+          <p className="mt-2 text-[hsl(var(--muted-foreground))]">View and manage all registered users in your tenant.</p>
         </div>
         <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setShowCreate(true)}>Invite User</Button>
       </div>
@@ -46,55 +49,55 @@ export default function AdminUsersPage() {
           <Loader size="lg" label="Loading users…" />
         </div>
       ) : error ? (
-        <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 shadow-sm flex flex-col items-center">
+        <div className="mt-10 rounded-2xl border border-[hsl(var(--destructive)/0.2)] bg-[hsl(var(--destructive)/0.05)] p-6 text-center text-[hsl(var(--destructive))] shadow-sm flex flex-col items-center">
           <AlertTriangle className="w-10 h-10 mb-2" />
           <p className="font-medium">Failed to load users.</p>
           <p className="text-sm mt-1">Please check your connection or permissions.</p>
         </div>
       ) : users.length === 0 ? (
-        <div className="mt-12 flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-gray-300 bg-gray-50">
-          <UserX className="text-gray-400 w-12 h-12 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900">No users found</h3>
-          <p className="mt-2 text-gray-500">There are no users registered in this tenant yet.</p>
-        </div>
+        <EmptyState 
+           icon={<UserX className="w-8 h-8" />}
+           title="No users found"
+           description="There are no users registered in this tenant yet."
+           variant="dashed"
+           className="mt-8"
+        />
       ) : (
-        <Card className="overflow-hidden p-0 shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50/80">
-                <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-500 font-semibold">
-                  <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50/80 transition-colors group">
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{u.full_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 group-hover:text-gray-700 transition-colors">{u.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getRoleBadge(u.roles)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {u.is_active 
-                        ? <Badge variant="success">Active</Badge> 
-                        : <Badge variant="danger">Inactive</Badge>
-                      }
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <Button variant="ghost" size="sm" onClick={() => setEditingUser(u)}>
-                        Edit
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="rounded-[var(--radius-xl)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] overflow-hidden shadow-[var(--shadow-sm)]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((u) => (
+                <TableRow key={u.id} className="group">
+                  <TableCell className="font-medium text-[hsl(var(--foreground))]">{u.full_name}</TableCell>
+                  <TableCell className="text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">{u.email}</TableCell>
+                  <TableCell>
+                    {getRoleBadge(u.roles)}
+                  </TableCell>
+                  <TableCell>
+                    {u.is_active 
+                      ? <Badge variant="success">Active</Badge> 
+                      : <Badge variant="danger">Inactive</Badge>
+                    }
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => setEditingUser(u)}>
+                      Edit
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       <CreateUserModal
@@ -151,23 +154,20 @@ function CreateUserModal({
   return (
     <Modal open={open} onClose={onClose} title="Invite New User">
       <form onSubmit={submit} className="flex flex-col gap-4">
-        {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+        {formError ? <p className="text-sm text-[hsl(var(--destructive))]">{formError}</p> : null}
         <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label="Temporary Password" type="text" required value={password} onChange={(e) => setPassword(e.target.value)} />
         <Input label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
         
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Role</label>
-          <select
-            value={roleCode}
-            onChange={(e) => setRoleCode(e.target.value)}
-            className="rounded-lg border border-gray-300 p-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          >
-            <option value="student">Student</option>
-            <option value="instructor">Instructor</option>
-            <option value="tenant_admin">Tenant Admin</option>
-          </select>
-        </div>
+        <Select
+          label="Role"
+          value={roleCode}
+          onChange={(e) => setRoleCode(e.target.value)}
+        >
+          <option value="student">Student</option>
+          <option value="instructor">Instructor</option>
+          <option value="tenant_admin">Tenant Admin</option>
+        </Select>
 
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
@@ -226,46 +226,43 @@ function EditUserModal({
   return (
     <Modal open={!!user} onClose={onClose} title="Edit User">
       <form onSubmit={submit} className="flex flex-col gap-4">
-        {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+        {formError ? <p className="text-sm text-[hsl(var(--destructive))]">{formError}</p> : null}
         
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Email (Cannot be changed)</label>
+          <label className="text-sm font-medium text-[hsl(var(--foreground))]">Email (Cannot be changed)</label>
           <input
             type="email"
             value={user.email}
             disabled
-            className="rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-500 cursor-not-allowed"
+            className="rounded-[var(--radius-md)] border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2.5 text-sm text-[hsl(var(--muted-foreground))] cursor-not-allowed"
           />
         </div>
 
         <Input label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
         
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Role</label>
-          <select
-            value={roleCode}
-            onChange={(e) => setRoleCode(e.target.value)}
-            className="rounded-lg border border-gray-300 p-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          >
-            <option value="student">Student</option>
-            <option value="instructor">Instructor</option>
-            <option value="tenant_admin">Tenant Admin</option>
-          </select>
-        </div>
+        <Select
+          label="Role"
+          value={roleCode}
+          onChange={(e) => setRoleCode(e.target.value)}
+        >
+          <option value="student">Student</option>
+          <option value="instructor">Instructor</option>
+          <option value="tenant_admin">Tenant Admin</option>
+        </Select>
 
-        <div className="flex items-center gap-3 mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-3 mt-2 p-3 bg-[hsl(var(--muted)/0.5)] border border-[hsl(var(--border))] rounded-[var(--radius-md)]">
           <input
             type="checkbox"
             id="is-active-toggle"
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-600"
+            className="h-4 w-4 rounded border-[hsl(var(--border))] text-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]"
           />
           <div className="flex flex-col">
-            <label htmlFor="is-active-toggle" className="text-sm font-medium text-gray-900">
+            <label htmlFor="is-active-toggle" className="text-sm font-medium text-[hsl(var(--foreground))]">
               Active Status
             </label>
-            <p className="text-xs text-gray-500">Uncheck to block this user from logging in.</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Uncheck to block this user from logging in.</p>
           </div>
         </div>
 

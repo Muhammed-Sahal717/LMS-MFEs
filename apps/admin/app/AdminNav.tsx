@@ -22,7 +22,7 @@ export function AdminNav() {
   const userRoleCodes = user?.roles.map(r => r.code) || [];
   const visibleTabs = tabs.filter(t => t.roles.some(r => userRoleCodes.includes(r)));
   return (
-    <nav className="mb-6 flex gap-1 border-b border-border">
+    <nav className="mb-6 flex gap-1 border-b border-[hsl(var(--border))]">
       {visibleTabs.map((t) => {
         const active = pathname === t.href;
         return (
@@ -32,8 +32,8 @@ export function AdminNav() {
             className={cn(
               "border-b-2 px-4 py-2 text-sm font-medium transition-colors",
               active
-                ? "border-brand-600 text-brand-700"
-                : "border-transparent text-gray-500 hover:text-gray-800",
+                ? "border-[hsl(var(--primary))] text-[hsl(var(--primary))]"
+                : "border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]",
             )}
           >
             {t.label}

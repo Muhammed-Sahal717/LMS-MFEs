@@ -197,7 +197,7 @@ function EditUserModal({
     if (user) {
       setFullName(user.full_name);
       setIsActive(user.is_active);
-      setRoleCode(user.roles && user.roles.length > 0 ? user.roles[0].code : "student");
+      setRoleCode(user.roles && user.roles.length > 0 ? (user.roles[0]?.code ?? "student") : "student");
       setFormError(null);
     }
   }, [user]);

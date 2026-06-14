@@ -31,8 +31,9 @@ export function Sidebar({ items, activeHref, className }: SidebarProps) {
     <aside
       className={cn(
         "w-[220px] shrink-0 flex flex-col",
-        "border-r border-[hsl(var(--border))]",
-        "bg-[hsl(var(--card))]",
+        "border-r border-[hsl(var(--sidebar-border))]",
+        "bg-[hsl(var(--sidebar))]",
+        "text-[hsl(var(--sidebar-foreground))]",
         "min-h-screen",
         className,
       )}
@@ -55,13 +56,13 @@ export function Sidebar({ items, activeHref, className }: SidebarProps) {
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-inset",
                   active
                     ? [
-                        "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-                        "[&_svg]:text-[hsl(var(--primary))]",
+                        "bg-[hsl(var(--sidebar-accent)/0.15)] text-[hsl(var(--sidebar-accent))]",
+                        "[&_svg]:text-[hsl(var(--sidebar-accent))]",
                       ]
                     : [
-                        "text-[hsl(var(--muted-foreground))]",
-                        "hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]",
-                        "[&_svg]:text-[hsl(var(--muted-foreground))] hover:[&_svg]:text-[hsl(var(--foreground))]",
+                        "text-[hsl(var(--sidebar-muted-foreground))]",
+                        "hover:bg-[hsl(var(--sidebar-accent)/0.1)] hover:text-[hsl(var(--sidebar-foreground))]",
+                        "[&_svg]:text-[hsl(var(--sidebar-muted-foreground))] hover:[&_svg]:text-[hsl(var(--sidebar-foreground))]",
                       ],
                 )}
               >
@@ -71,9 +72,6 @@ export function Sidebar({ items, activeHref, className }: SidebarProps) {
                   </span>
                 ) : null}
                 <span className="truncate">{item.label}</span>
-                {active && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))]" />
-                )}
               </a>
             );
           })}
@@ -81,8 +79,8 @@ export function Sidebar({ items, activeHref, className }: SidebarProps) {
       </div>
 
       {/* Bottom footer area */}
-      <div className="border-t border-[hsl(var(--border))] p-3">
-        <div className="text-[10px] font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground)/0.6)]">
+      <div className="border-t border-[hsl(var(--sidebar-border))] p-3">
+        <div className="text-[10px] font-medium uppercase tracking-widest text-[hsl(var(--sidebar-muted-foreground)/0.6)]">
           LMS Platform
         </div>
       </div>

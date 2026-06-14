@@ -2,9 +2,9 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Button, Loader, ProgressBar, cn } from "@lms/ui";
+import { Button, Loader, ProgressBar, cn, Card, CardContent } from "@lms/ui";
 import { learningApi, type LessonOut } from "@lms/api-client";
-import { ArrowLeft, Check, FileText, PackageOpen, Video } from "lucide-react";
+import { ArrowLeft, Check, FileText, PackageOpen, Video, CheckCircle2 } from "lucide-react";
 
 export default function PlayerPage({
   params,
@@ -62,35 +62,35 @@ export default function PlayerPage({
 
   if (lessons === null) {
     return (
-      <div className="mt-20 flex justify-center">
-        <Loader size="lg" label="Loading course…" />
+      <div className="mt-32 flex justify-center">
+        <Loader size="lg" label="Loading curriculum..." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-600 transition-colors">
+    <div className="mx-auto max-w-[1400px] animate-in fade-in duration-500 pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Link>
-        <div className="w-64">
+        <div className="w-full sm:w-64">
           <ProgressBar value={progress} showLabel />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_350px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px]">
         {/* Main Content Area */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           {active ? (
-            <div className="flex flex-col flex-1">
-              <div className="mb-4">
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{active.title}</h1>
+            <div className="flex flex-col flex-1 gap-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--foreground))] tracking-tight">{active.title}</h1>
               </div>
               
-              <div className="relative w-full rounded-2xl overflow-hidden bg-gray-900 shadow-2xl ring-1 ring-gray-900/10 mb-6">
+              <Card className="w-full overflow-hidden border-[hsl(var(--border))] shadow-[var(--shadow-md)]">
                 {active.content_type === "video" ? (
-                  <div className="aspect-video w-full">
+                  <div className="aspect-video w-full bg-black">
                     <iframe
                       className="h-full w-full"
                       src={active.video?.hls_url ?? active.video?.url ?? undefined}
@@ -99,50 +99,58 @@ export default function PlayerPage({
                     />
                   </div>
                 ) : (
-                  <article className="min-h-[500px] bg-white p-10 prose prose-brand max-w-none">
+                  <article className="min-h-[500px] bg-[hsl(var(--card))] p-8 sm:p-12 prose prose-sm sm:prose-base dark:prose-invert max-w-none text-[hsl(var(--foreground))]">
                     {active.document?.file_url ?? (
-                      <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                        <FileText className="w-12 h-12 mb-4 text-gray-400" />
+                      <div className="flex flex-col items-center justify-center h-[400px] text-center text-[hsl(var(--muted-foreground))]">
+                        <FileText className="w-12 h-12 mb-4 opacity-50" />
                         <p>Document content goes here.</p>
                       </div>
                     )}
                   </article>
                 )}
-              </div>
+              </Card>
 
-              <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                <div>
-                  <h3 className="font-semibold text-gray-900">Mark as Done</h3>
-                  <p className="text-sm text-gray-500">Complete this lesson to advance your progress.</p>
-                </div>
-                <Button 
-                  onClick={markComplete} 
-                  loading={saving} 
-                  disabled={completed[active.id]}
-                  size="lg"
-                  className={cn(completed[active.id] && "bg-green-600 hover:bg-green-700")}
-                >
-                  {completed[active.id] ? "✓ Completed" : "Mark complete"}
-                </Button>
-              </div>
+              <Card className="border-[hsl(var(--border))] shadow-sm bg-[hsl(var(--card))]">
+                <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-[hsl(var(--foreground))]">Lesson Progress</h3>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-0.5">Complete this lesson to advance your overall progress.</p>
+                  </div>
+                  <Button 
+                    onClick={markComplete} 
+                    loading={saving} 
+                    disabled={completed[active.id]}
+                    size="md"
+                    variant={completed[active.id] ? "outline" : "default"}
+                    className={cn(
+                      "w-full sm:w-auto shrink-0",
+                      completed[active.id] && "border-success-500/50 bg-success-50 text-success-700 dark:bg-success-950/20 dark:text-success-400"
+                    )}
+                  >
+                    {completed[active.id] ? (
+                      <><CheckCircle2 className="w-4 h-4 mr-2" /> Completed</>
+                    ) : "Mark complete"}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-96 bg-gray-50 rounded-2xl border border-dashed border-gray-300 text-center">
-              <PackageOpen className="w-12 h-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">No Lessons Found</h3>
-              <p className="mt-1 text-gray-500">This course doesn't have any lessons uploaded yet.</p>
-            </div>
+            <Card className="flex flex-col items-center justify-center h-[500px] bg-[hsl(var(--muted)/0.3)] border-dashed border-[hsl(var(--border))] text-center shadow-none">
+              <PackageOpen className="w-12 h-12 text-[hsl(var(--muted-foreground))] opacity-50 mb-4" />
+              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">No Lessons Found</h3>
+              <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">This course doesn't have any lessons uploaded yet.</p>
+            </Card>
           )}
         </div>
 
         {/* Course Curriculum Sidebar */}
-        <aside className="flex flex-col h-[800px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-lg font-bold text-gray-900">Course Curriculum</h2>
-            <p className="text-sm text-gray-500 mt-1">{lessons.length} total lessons</p>
+        <aside className="flex flex-col h-[calc(100vh-120px)] sticky top-6 overflow-hidden rounded-[var(--radius-lg)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-[var(--shadow-sm)]">
+          <div className="px-5 py-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)]">
+            <h2 className="text-base font-semibold text-[hsl(var(--foreground))] tracking-tight">Course Curriculum</h2>
+            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">{lessons.length} total lessons</p>
           </div>
           
-          <ul className="flex-1 overflow-y-auto p-3 space-y-1">
+          <ul className="flex-1 overflow-y-auto p-2 space-y-0.5">
             {lessons.map((l, index) => {
               const isActive = l.id === activeId;
               const isDone = completed[l.id];
@@ -151,34 +159,34 @@ export default function PlayerPage({
                   <button
                     onClick={() => setActiveId(l.id)}
                     className={cn(
-                      "group flex w-full items-start gap-4 rounded-xl px-4 py-3 text-left transition-all",
+                      "group flex w-full items-start gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-left transition-all",
                       isActive
-                        ? "bg-brand-50 shadow-sm ring-1 ring-brand-200"
-                        : "hover:bg-gray-50",
+                        ? "bg-[hsl(var(--accent))] shadow-sm"
+                        : "hover:bg-[hsl(var(--accent)/0.5)]",
                     )}
                   >
                     <div className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm mt-0.5",
-                      isDone ? "bg-green-100 text-green-600" : 
-                      isActive ? "bg-brand-600 text-white" : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium mt-0.5 transition-colors",
+                      isDone ? "bg-success-100 text-success-700 dark:bg-success-900/50 dark:text-success-400" : 
+                      isActive ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]" : "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))]"
                     )}>
-                      {isDone ? <Check className="w-4 h-4" /> : (index + 1)}
+                      {isDone ? <Check className="w-3.5 h-3.5" /> : (index + 1)}
                     </div>
                     
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 flex-col min-w-0">
                       <span className={cn(
-                        "text-sm font-medium leading-tight",
-                        isActive ? "text-brand-900" : "text-gray-700 group-hover:text-gray-900"
+                        "text-sm font-medium leading-tight truncate",
+                        isActive ? "text-[hsl(var(--foreground))]" : "text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))]"
                       )}>
                         {l.title}
                       </span>
-                      <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
-                        <span className="flex items-center gap-1 text-gray-400">
-                          {l.content_type === "video" ? <Video className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />} 
+                      <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-[hsl(var(--muted-foreground))]">
+                        <span className="flex items-center gap-1 opacity-70">
+                          {l.content_type === "video" ? <Video className="w-3 h-3" /> : <FileText className="w-3 h-3" />} 
                           <span className="capitalize">{l.content_type}</span>
                         </span>
-                        <span>•</span>
-                        <span>{Math.round(l.duration_seconds / 60)} min</span>
+                        <span className="opacity-50">•</span>
+                        <span className="opacity-80">{Math.round(l.duration_seconds / 60)} min</span>
                       </div>
                     </div>
                   </button>

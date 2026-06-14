@@ -1,4 +1,5 @@
 import { cn } from "./cn";
+import { Loader2 } from "lucide-react";
 
 export interface LoaderProps {
   size?: "sm" | "md" | "lg";
@@ -7,24 +8,25 @@ export interface LoaderProps {
 }
 
 const sizes = {
-  sm: "h-4 w-4 border-2",
-  md: "h-5 w-5 border-2",
-  lg: "h-10 w-10 border-[3px]",
+  sm: "h-4 w-4",
+  md: "h-5 w-5",
+  lg: "h-10 w-10",
 } as const;
 
-/** Token-based spinner. Used by Button's loading state. */
+/** Token-based spinner using Shadcn/Vercel style SVG. */
 export function Loader({ size = "md", className, label }: LoaderProps) {
   return (
-    <span role="status" className={cn("inline-flex items-center gap-2", className)}>
-      <span
+    <span role="status" className={cn("inline-flex items-center gap-3", className)}>
+      <Loader2
         className={cn(
-          "animate-spin rounded-full",
-          "border-[hsl(var(--muted))] border-t-[hsl(var(--primary))]",
-          sizes[size],
+          "animate-spin text-[hsl(var(--primary))]",
+          sizes[size]
         )}
       />
       {label ? (
-        <span className="text-sm text-[hsl(var(--muted-foreground))]">{label}</span>
+        <span className="text-sm font-medium animate-pulse text-[hsl(var(--muted-foreground))] tracking-wide">
+          {label}
+        </span>
       ) : null}
       <span className="sr-only">Loading</span>
     </span>

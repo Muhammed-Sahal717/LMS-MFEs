@@ -15,15 +15,15 @@ const badgeVariants = cva(
           "border-transparent bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] shadow-sm hover:bg-[hsl(var(--destructive)/0.8)]",
         outline:
           "border-[hsl(var(--border))] text-[hsl(var(--foreground))] shadow-sm",
-        // LMS semantic variants
+        // LMS semantic variants using full 50-950 scales
         success:
-          "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+          "border-success-200 bg-success-50 text-success-700 dark:border-success-800/50 dark:bg-success-950/50 dark:text-success-400",
         warning:
-          "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+          "border-warning-200 bg-warning-50 text-warning-700 dark:border-warning-800/50 dark:bg-warning-950/50 dark:text-warning-400",
         danger:
-          "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400",
+          "border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-800/50 dark:bg-danger-950/50 dark:text-danger-400",
         info:
-          "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+          "border-info-200 bg-info-50 text-info-700 dark:border-info-800/50 dark:bg-info-950/50 dark:text-info-400",
       },
     },
     defaultVariants: {

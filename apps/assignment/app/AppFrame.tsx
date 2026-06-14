@@ -8,7 +8,7 @@ import { useAuth } from "@lms/api-client";
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, can, hasModule, logout, loading } = useAuth();
-  const fullPath = "/assignment" + (pathname === "/" ? "" : pathname);
+  const fullPath = "/assignments" + (pathname === "/" ? "" : pathname);
 
   const actions = loading ? (
     <div className="h-8 w-24 animate-pulse rounded-lg bg-[hsl(var(--muted))]" />

@@ -5,7 +5,7 @@
  * Tailwind v4 is CSS-first: design tokens live in @theme below.
  *
  * Design System: shadcn/ui token-based HSL theming
- * Primary: Indigo | Neutrals: Zinc/Slate | Font: Inter
+ * Primary: Blue | Secondary Accent: Teal | Neutrals: Slate
  */
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
@@ -17,6 +17,7 @@
 @layer base {
   :root {
     /* Core semantic tokens (HSL values, used with hsl()) */
+    /* Light Mode: Clean white surfaces */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
@@ -26,79 +27,84 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary: Indigo */
-    --primary: 239 84% 67%;
+    /* Primary: Blue (#2563eb) */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: light neutral surface */
-    --secondary: 220 14% 96%;
+    /* Secondary: Subtle blue-tinted neutral */
+    --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
 
-    /* Muted: subtle backgrounds */
-    --muted: 220 14% 96%;
+    /* Muted: Subtle blue-tinted backgrounds */
+    --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent: indigo tint hover */
-    --accent: 239 84% 96%;
-    --accent-foreground: 239 84% 40%;
+    /* Accent: Subtle hover background for buttons/menus */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
 
-    /* Destructive: red */
+    /* Destructive: Red (#ef4444) */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders & inputs */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 239 84% 67%;
+    /* Borders & inputs: Soft slate borders */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
     /* Border radius */
     --radius: 0.625rem;
 
-    /* Sidebar specific */
-    --sidebar: 222 47% 11%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-border: 223 37% 17%;
-    --sidebar-accent: 239 50% 22%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-muted-foreground: 215 20% 65%;
+    /* Sidebar: Clean white/slate in light mode */
+    --sidebar: 0 0% 98%; /* Slightly off-white for depth */
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-accent: 221 83% 53%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-muted-foreground: 215 16% 47%;
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    /* Dark Mode: near-black, cohesive low-saturation slate */
+    --background: 220 10% 4%;
+    --foreground: 210 40% 98%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 213 31% 91%;
+    /* Elevated cards */
+    --card: 220 10% 8%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 8%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 220 10% 8%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary: brighter indigo in dark */
-    --primary: 239 84% 67%;
+    /* Primary: Blue (#2563eb) */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 13%;
+    --secondary: 220 10% 15%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 222 47% 13%;
+    --muted: 220 10% 15%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 222 47% 16%;
+    /* Accent: Teal (#14b8a6) - Semantic Accent */
+    --accent: 220 10% 15%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 63% 50%;
+    /* Destructive: Red (#ef4444) */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 47% 15%;
-    --input: 222 47% 15%;
-    --ring: 239 84% 67%;
+    /* Borders & inputs: Soft borders */
+    --border: 220 10% 15%;
+    --input: 220 10% 15%;
+    --ring: 221 83% 53%;
 
-    /* Sidebar */
-    --sidebar: 222 47% 6%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-border: 222 47% 12%;
-    --sidebar-accent: 239 50% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
+    /* Sidebar: Deep slate/navy */
+    --sidebar: 220 10% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 220 10% 15%;
+    --sidebar-accent: 221 83% 53%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-muted-foreground: 215 20% 55%;
   }
 
@@ -122,22 +128,71 @@
 
 /* ─── Tailwind v4 @theme block ─── */
 @theme {
-  /* Brand palette (backward compat + new indigo) */
-  --color-brand-50: hsl(239 84% 97%);
-  --color-brand-100: hsl(239 84% 93%);
-  --color-brand-200: hsl(239 84% 86%);
-  --color-brand-300: hsl(239 84% 78%);
-  --color-brand-400: hsl(239 84% 72%);
-  --color-brand-500: hsl(239 84% 67%);
-  --color-brand-600: hsl(239 84% 58%);
-  --color-brand-700: hsl(239 84% 48%);
-  --color-brand-800: hsl(239 84% 38%);
-  --color-brand-900: hsl(239 84% 28%);
+  /* Brand palette (backward compat mapped to new Blue) */
+  --color-brand-50: hsl(214 100% 97%);
+  --color-brand-100: hsl(214 100% 93%);
+  --color-brand-200: hsl(213 97% 87%);
+  --color-brand-300: hsl(212 96% 78%);
+  --color-brand-400: hsl(213 94% 68%);
+  --color-brand-500: hsl(217 91% 60%);
+  --color-brand-600: hsl(221 83% 53%); /* Primary Blue */
+  --color-brand-700: hsl(224 76% 48%);
+  --color-brand-800: hsl(226 71% 40%);
+  --color-brand-900: hsl(226 70% 33%);
 
   /* Semantic surface tokens (light-mode defaults, overridden in .dark) */
   --color-surface: hsl(var(--background));
   --color-surface-muted: hsl(var(--muted));
   --color-border: hsl(var(--border));
+
+  /* Full 50-950 scales for semantic usage in components like Badges */
+  --color-success-50: var(--color-emerald-50);
+  --color-success-100: var(--color-emerald-100);
+  --color-success-200: var(--color-emerald-200);
+  --color-success-300: var(--color-emerald-300);
+  --color-success-400: var(--color-emerald-400);
+  --color-success-500: var(--color-emerald-500);
+  --color-success-600: var(--color-emerald-600);
+  --color-success-700: var(--color-emerald-700);
+  --color-success-800: var(--color-emerald-800);
+  --color-success-900: var(--color-emerald-900);
+  --color-success-950: var(--color-emerald-950);
+
+  --color-warning-50: var(--color-amber-50);
+  --color-warning-100: var(--color-amber-100);
+  --color-warning-200: var(--color-amber-200);
+  --color-warning-300: var(--color-amber-300);
+  --color-warning-400: var(--color-amber-400);
+  --color-warning-500: var(--color-amber-500);
+  --color-warning-600: var(--color-amber-600);
+  --color-warning-700: var(--color-amber-700);
+  --color-warning-800: var(--color-amber-800);
+  --color-warning-900: var(--color-amber-900);
+  --color-warning-950: var(--color-amber-950);
+
+  --color-danger-50: var(--color-red-50);
+  --color-danger-100: var(--color-red-100);
+  --color-danger-200: var(--color-red-200);
+  --color-danger-300: var(--color-red-300);
+  --color-danger-400: var(--color-red-400);
+  --color-danger-500: var(--color-red-500);
+  --color-danger-600: var(--color-red-600);
+  --color-danger-700: var(--color-red-700);
+  --color-danger-800: var(--color-red-800);
+  --color-danger-900: var(--color-red-900);
+  --color-danger-950: var(--color-red-950);
+
+  --color-info-50: var(--color-blue-50);
+  --color-info-100: var(--color-blue-100);
+  --color-info-200: var(--color-blue-200);
+  --color-info-300: var(--color-blue-300);
+  --color-info-400: var(--color-blue-400);
+  --color-info-500: var(--color-blue-500);
+  --color-info-600: var(--color-blue-600);
+  --color-info-700: var(--color-blue-700);
+  --color-info-800: var(--color-blue-800);
+  --color-info-900: var(--color-blue-900);
+  --color-info-950: var(--color-blue-950);
 
   /* Semantic token passthrough for utilities */
   --color-background: hsl(var(--background));

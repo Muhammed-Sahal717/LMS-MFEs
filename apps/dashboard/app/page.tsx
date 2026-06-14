@@ -57,9 +57,9 @@ export default function DashboardPage() {
     if (user && !user.roles?.some(r => r.code === "student")) {
       const isAdmin = user.roles?.some(r => r.code === "tenant_admin" || r.code === "super_admin");
       if (isAdmin) {
-        router.push("/admin");
+        window.location.href = "/admin";
       } else {
-        router.push("/courses");
+        window.location.href = "/courses";
       }
       return;
     }

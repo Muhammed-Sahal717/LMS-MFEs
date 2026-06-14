@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent, Button, Loader, ProgressBar, EmptyState } from "@lms/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, ProgressBar, EmptyState, Skeleton } from "@lms/ui";
 import { learningApi, type CourseOut } from "@lms/api-client";
 import { GraduationCap } from "lucide-react";
 
@@ -19,8 +19,21 @@ export default function MyLearningPage() {
       <p className="mt-2 text-[hsl(var(--muted-foreground))]">Continue where you left off.</p>
 
       {courses === null ? (
-        <div className="mt-10 flex justify-center">
-          <Loader size="lg" label="Loading…" />
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+              <CardHeader className="pb-4">
+                <Skeleton className="h-6 w-3/4 rounded-md" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-2 w-full rounded-full" />
+                <div className="mt-6 flex items-center justify-between">
+                  <Skeleton className="h-6 w-20 rounded-[var(--radius-sm)]" />
+                  <Skeleton className="h-8 w-24 rounded-md" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : courses.length === 0 ? (
         <EmptyState 

@@ -26,7 +26,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
       const subpath = pathname.replace(/^\/admin/, "") || "/";
       
       if (subpath === "/tenants") hasAccess = isSuper;
-      else if (subpath === "/reports") hasAccess = isSuper || isAdmin;
+      else if (subpath === "/reports") hasAccess = isSuper || isAdmin || isInstructor;
       else if (subpath === "/users") hasAccess = isSuper || isAdmin || isInstructor; // Instructors can invite students
       else hasAccess = isSuper || isAdmin || isInstructor; // Default overview/courses
 
@@ -38,7 +38,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))]">
         <Loader size="lg" label="Verifying access..." />
       </div>
     );
@@ -52,7 +52,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   let hasAccess = false;
   const subpath = pathname.replace(/^\/admin/, "") || "/";
   if (subpath === "/tenants") hasAccess = isSuper;
-  else if (subpath === "/reports") hasAccess = isSuper || isAdmin;
+  else if (subpath === "/reports") hasAccess = isSuper || isAdmin || isInstructor;
   else if (subpath === "/users") hasAccess = isSuper || isAdmin || isInstructor;
   else hasAccess = isSuper || isAdmin || isInstructor;
 

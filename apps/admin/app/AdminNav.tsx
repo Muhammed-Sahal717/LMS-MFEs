@@ -11,7 +11,7 @@ const tabs = [
   { label: "Tenants", href: "/tenants", roles: ["super_admin"] },
   { label: "Courses", href: "/courses", roles: ["super_admin", "admin", "tenant_admin", "instructor"] },
   { label: "Users", href: "/users", roles: ["super_admin", "admin", "tenant_admin", "instructor"] }, // Instructors can invite students per user request
-  { label: "Reports", href: "/reports", roles: ["super_admin", "admin", "tenant_admin"] },
+  { label: "Reports", href: "/reports", roles: ["super_admin", "admin", "tenant_admin", "instructor"] },
 ];
 
 export function AdminNav() {

@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { CourseCreate, CourseOut, Page, ReportOut, UserOut, UserCreate, TenantCreate, CourseUpdate, TenantOut, UserUpdate, LessonCreate, LessonOut } from "./types";
+import type { CourseCreate, CourseOut, Page, ReportOut, UserOut, UserCreate, TenantCreate, CourseUpdate, TenantOut, UserUpdate, LessonCreate, LessonOut, AssignmentCreate, AssignmentOut } from "./types";
 
 /** Instructor/admin endpoints (backend). */
 export const adminApi = {
@@ -10,6 +10,8 @@ export const adminApi = {
   deleteCourse: (id: string) => api.del<{ message: string }>(`/admin/courses/${id}`),
   getCourseLessons: (courseId: string) => api.get<LessonOut[]>(`/admin/courses/${courseId}/lessons`),
   createLesson: (courseId: string, payload: LessonCreate) => api.post<LessonOut>(`/admin/courses/${courseId}/lessons`, payload),
+  getCourseAssignments: (courseId: string) => api.get<AssignmentOut[]>(`/admin/courses/${courseId}/assignments`),
+  createAssignment: (courseId: string, payload: AssignmentCreate) => api.post<AssignmentOut>(`/admin/courses/${courseId}/assignments`, payload),
   users: () => api.get<Page<UserOut>>("/admin/users").then((page) => page.items),
   createUser: (payload: UserCreate) => api.post<UserOut>("/admin/users", payload),
   updateUser: (id: string, payload: UserUpdate) => api.put<UserOut>(`/admin/users/${id}`, payload),

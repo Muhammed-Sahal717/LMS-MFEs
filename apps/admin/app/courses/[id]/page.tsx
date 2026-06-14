@@ -4,8 +4,8 @@ import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Input, Loader, Modal, Badge } from "@lms/ui";
-import { adminApi, type CourseOut, type CourseUpdate, type LessonOut } from "@lms/api-client";
-import { ArrowLeft, Save, AlertCircle, Video, FileText, File } from "lucide-react";
+import { adminApi, type CourseOut, type CourseUpdate, type LessonOut, type AssignmentOut } from "@lms/api-client";
+import { ArrowLeft, Save, AlertCircle, Video, FileText, File, ClipboardList } from "lucide-react";
 
 export default function CourseEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -15,11 +15,15 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "curriculum">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "curriculum" | "assignments">("general");
 
   const [lessons, setLessons] = useState<LessonOut[]>([]);
   const [showAddLesson, setShowAddLesson] = useState(false);
   const [loadingLessons, setLoadingLessons] = useState(false);
+
+  const [assignments, setAssignments] = useState<AssignmentOut[]>([]);
+  const [showAddAssignment, setShowAddAssignment] = useState(false);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
 
   // Form State
   const [description, setDescription] = useState("");
@@ -35,6 +39,14 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       .finally(() => setLoadingLessons(false));
   }
 
+  function loadAssignments() {
+    setLoadingAssignments(true);
+    adminApi.getCourseAssignments(id)
+      .then(setAssignments)
+      .catch(console.error)
+      .finally(() => setLoadingAssignments(false));
+  }
+
   useEffect(() => {
     adminApi.getCourse(id)
       .then((c) => {
@@ -48,6 +60,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       .finally(() => setLoading(false));
       
     loadLessons();
+    loadAssignments();
   }, [id]);
 
   async function handleSave(e: FormEvent) {
@@ -133,6 +146,16 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
             }`}
           >
             Curriculum
+          </button>
+          <button
+            onClick={() => setActiveTab("assignments")}
+            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "assignments"
+                ? "border-brand-500 text-brand-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            Assignments
           </button>
         </nav>
       </div>
@@ -281,6 +304,77 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
           loadLessons();
         }}
       />
+
+      {activeTab === "assignments" && (
+        <Card className="p-0 overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Course Assignments</h3>
+              <p className="text-sm text-gray-500 mt-1">Manage homework and project assignments for this course.</p>
+            </div>
+            <Button onClick={() => setShowAddAssignment(true)} className="flex items-center gap-2">
+              <ClipboardList size={16} /> Add Assignment
+            </Button>
+          </div>
+          
+          <div className="p-0">
+            {loadingAssignments ? (
+              <div className="p-12 flex justify-center"><Loader /></div>
+            ) : assignments.length === 0 ? (
+              <div className="p-12 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
+                  <ClipboardList className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">No assignments yet</h3>
+                <p className="mt-2 text-gray-500 max-w-sm mx-auto">
+                  Create your first assignment to give students tasks to complete.
+                </p>
+                <Button variant="secondary" className="mt-6" onClick={() => setShowAddAssignment(true)}>
+                  Create First Assignment
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50/80">
+                    <tr className="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                      <th className="px-6 py-4">Title</th>
+                      <th className="px-6 py-4">Max Points</th>
+                      <th className="px-6 py-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {assignments.map((assignment) => (
+                      <tr key={assignment.id} className="hover:bg-gray-50/80 transition-colors group">
+                        <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
+                          <ClipboardList className="text-brand-500 w-5 h-5" />
+                          {assignment.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                          {assignment.max_points}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {assignment.is_published ? <Badge variant="success">Published</Badge> : <Badge variant="warning">Draft</Badge>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      <AddAssignmentModal
+        courseId={id}
+        open={showAddAssignment}
+        onClose={() => setShowAddAssignment(false)}
+        onCreated={() => {
+          setShowAddAssignment(false);
+          loadAssignments();
+        }}
+      />
     </div>
   );
 }
@@ -345,6 +439,93 @@ function AddLessonModal({
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={saving}>Create Lesson</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function AddAssignmentModal({
+  courseId,
+  open,
+  onClose,
+  onCreated,
+}: {
+  courseId: string;
+  open: boolean;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [maxPoints, setMaxPoints] = useState("100");
+  const [passPoints, setPassPoints] = useState("50");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await adminApi.createAssignment(courseId, {
+        title,
+        description,
+        max_points: parseFloat(maxPoints),
+        pass_points: parseFloat(passPoints),
+        is_published: true, // Auto-publish for MVP
+      });
+      setTitle("");
+      setDescription("");
+      setMaxPoints("100");
+      setPassPoints("50");
+      onCreated();
+    } catch (err: any) {
+      setError(err.message || "Failed to create assignment.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Add New Assignment">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+        
+        <Input label="Assignment Title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+        
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700">Instructions / Description</label>
+          <textarea
+            required
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={5}
+            placeholder="Describe what the student needs to do..."
+            className="rounded-lg border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Input 
+            label="Max Points" 
+            type="number" 
+            required 
+            value={maxPoints} 
+            onChange={(e) => setMaxPoints(e.target.value)} 
+          />
+          <Input 
+            label="Passing Points" 
+            type="number" 
+            required 
+            value={passPoints} 
+            onChange={(e) => setPassPoints(e.target.value)} 
+          />
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" loading={saving}>Create Assignment</Button>
         </div>
       </form>
     </Modal>

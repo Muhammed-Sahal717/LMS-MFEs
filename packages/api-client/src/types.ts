@@ -226,6 +226,15 @@ export interface AssignmentOut {
   quiz?: QuizOut | null;
 }
 
+export interface AssignmentCreate {
+  title: string;
+  description?: string | null;
+  max_points?: number;
+  pass_points?: number;
+  due_at?: string | null;
+  is_published?: boolean;
+}
+
 export interface SubmissionOut {
   id: string;
   assignment_id: string;

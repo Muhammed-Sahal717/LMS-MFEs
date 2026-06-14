@@ -33,10 +33,14 @@ export default function RegisterPage() {
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.code === "conflict") setError("An account with this email already exists.");
-        else if (err.code === "validation_error") setError("Check your details and try again.");
-        else setError("Could not register.");
+        else if (err.code === "validation_error") {
+          // The backend sends field-level validation errors in err.details
+          const details = typeof err.details === "string" ? err.details : JSON.stringify(err.details);
+          setError(`Validation error: ${details || "Check your details and try again."}`);
+        }
+        else setError(`Could not register: ${err.message || err.code}`);
       } else {
-        setError("Something went wrong. Is the backend running?");
+        setError(`Something went wrong: ${err instanceof Error ? err.message : String(err)}`);
       }
     } finally {
       setLoading(false);

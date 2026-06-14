@@ -1,12 +1,38 @@
-# LMS — Micro-Frontend Platform
+# Next-Gen Enterprise LMS: System Architecture & Technical Specifications
 
-A Learning Management System built with **Next.js Multi-Zones** micro-frontends.
-Each feature is an independent Next.js app ("zone"); a **shell** host stitches
-them into one site via URL rewrites.
+This repository contains the Micro-Frontend (MFE) architecture and UI packages for the Learning Management System platform. It is designed to be a highly scalable, distributed environment engineered for B2B SaaS operations.
 
-## How Multi-Zones works (read this first)
+---
 
-```
+## 1. Executive Summary
+
+The LMS platform is built on a highly scalable, distributed architecture. 
+* **Frontend**: A true **Next.js Multi-Zone Micro-Frontend (MFE)** architecture managed via Turborepo.
+* **Backend**: A Python **FastAPI Modular Monolith**, utilizing SQLAlchemy for deep PostgreSQL integration.
+* **Database**: PostgreSQL with strict Row-Level Security (RLS) analogs implemented via `TenantMixin` structures.
+* **Authentication & Authorization**: Stateless JWT authentication with strict Role-Based Access Control (RBAC).
+
+---
+
+## 2. Micro-Frontend (MFE) Architecture
+
+The platform's frontend is not a traditional monolith. It is composed of 7 mathematically distinct Next.js applications that are stitched together to feel like a single Single Page Application (SPA).
+
+### 2.1 The MFE Zones
+Each of the following zones resides in `apps/` and contains its own `package.json`, `next.config.ts`, and `app/` router. They can be deployed to completely isolated server environments.
+
+1. **`shell` (Port 3000)**: The Host API Gateway. It owns the root domain (`/`).
+2. **`auth` (Port 3001)**: Handles authentication flows (`/auth`).
+3. **`catalog` (Port 3002)**: The public storefront for course discovery (`/courses`).
+4. **`learning` (Port 3003)**: The secure video player and classroom (`/learn`).
+5. **`assignment` (Port 3004)**: Manages quizzes and student submissions (`/assignments`).
+6. **`dashboard` (Port 3005)**: The student portal for grades and progress (`/dashboard`).
+7. **`admin` (Port 3006)**: The management suite for user CRUD and curriculum building (`/admin`).
+
+### 2.2 How the Zones Connect
+The magic of the MFE orchestration happens in the `shell` application's `next.config.ts`. The Shell uses Next.js `rewrites` to act as an invisible reverse proxy. 
+
+```text
                  ┌─────────────────────────────────────┐
  browser ──────▶ │  shell (host)  http://localhost:3000 │  owns the root origin
                  │  next.config.ts  async rewrites()    │
@@ -17,105 +43,83 @@ them into one site via URL rewrites.
                     :3001         :3002          :3005          Next.js app
 ```
 
-- The **shell** is the only origin the browser sees. Its `rewrites()` proxy
-  `/courses/*` → the catalog app, etc. Users never know there are 6 apps.
-- Each zone sets `basePath` + `assetPrefix` (e.g. `/courses`) so its internal
-  routes and static assets don't collide with other zones.
-- **Navigation inside a zone** = `<Link>` → soft, no reload.
-  **Navigation across zones** = plain `<a>` → full page load. (The one tradeoff.)
-- **Sharing is build-time**, not runtime: shared React components live in
-  `packages/ui` and are imported like any npm package. There is no runtime
-  module federation. Cross-zone state (e.g. auth token) uses cookies/localStorage.
+When a user navigates to `https://platform.com/admin/users`, the Shell invisibly proxies the HTTP request to the `admin` zone. Because the Admin zone has a `basePath` of `/admin`, the routing perfectly aligns. The browser never refreshes, and the user never realizes they have crossed server boundaries.
 
-## Repo layout
+### 2.3 Shared NPM Packages
+To maintain design consistency and reduce duplicated code across the 7 standalone apps, the workspace utilizes local NPM packages in the `packages/` directory:
+- **`@lms/ui`**: Contains the canonical React components (`AppShell`, `Sidebar`, `Button`, `Modal`). If a component is updated here, it instantly propagates across all MFEs.
+- **`@lms/api-client`**: The single source of truth for the Axios configuration, TypeScript DTOs, and JWT token rotation logic.
 
+---
+
+## 3. Multi-Tenancy Routing & Data Isolation
+
+The platform is designed to serve multiple academies (Tenants) from the same codebase and database, while ensuring zero data leakage.
+
+### 3.1 Frontend Tenant Resolution
+Multi-tenancy begins at the browser URL. The `@lms/api-client` dynamically extracts the Tenant Slug from the hostname.
+- **Subdomain Routing**: If a user visits `https://acme.lms.com`, the client extracts `acme` as the tenant slug.
+- **Vercel Routing**: If a user visits `acme-academy-lms.vercel.app`, it gracefully falls back to extract `acme-academy`.
+- **Injection**: Every API request made from any MFE automatically attaches the header `X-Tenant-ID: acme` to the HTTP request.
+
+### 3.2 Backend Data Isolation (RLS Pattern)
+When the FastAPI backend receives a request, the multi-tenancy middleware intercepts the `X-Tenant-ID` header.
+1. The backend queries the `tenants` database table to resolve the slug to a UUID.
+2. The UUID is injected into a global request context variables using Python's `contextvars`.
+3. Every SQLAlchemy database model (e.g., `User`, `Course`, `Lesson`) inherits from a `TenantMixin`.
+4. The database session automatically applies a `where tenant_id = <UUID>` clause to **every single database query**, ensuring cross-tenant data contamination is mathematically impossible.
+
+---
+
+## 4. Backend Architecture (FastAPI)
+
+The backend is structured as a tightly-coupled Modular Monolith, optimizing for performance while maintaining clear boundaries.
+
+### 4.1 Module Design
+Business logic is strictly segmented into modules (`auth`, `courses`, `learning`, `admin`, `assignments`). 
+- Each module has its own `router.py`, `schemas.py`, `models.py`, and `service.py`.
+- **Strict Boundaries**: Modules communicate through internal service methods, not direct cross-table joins.
+
+### 4.2 Data Integrity (Soft Deletes)
+Database records are never hard-deleted. Models utilize a `SoftDeleteMixin` (or `is_active` boolean for Users). This preserves critical historical data (like past enrollments or quiz submissions) while immediately locking out the deactivated user or hiding the archived course.
+
+### 4.3 Feature Flags / Module Licensing
+A sophisticated Licensing system is built into the backend. Super Admins can toggle specific modules (like `assignments` or `catalog`) on or off for specific tenants. If a tenant disables the `assignments` module, any API requests to that module will instantly return a `403 Forbidden`, effectively enforcing paywalls for premium SaaS tiers.
+
+---
+
+## 5. Role-Based Access Control (RBAC) & UI Gating
+
+Security is enforced at both the UI and API levels.
+
+### 5.1 Frontend UI Gating
+The `@lms/ui` package's `AppShell` and `navConfig` dictate what the user sees based on their roles array (e.g., `["student"]`, `["instructor"]`, `["tenant_admin"]`).
+- Students only see "My Learning", "Dashboard", and "Assignments".
+- Admins and Instructors see the "Admin" management panel, completely de-cluttering the UI based on intent.
+
+### 5.2 API Permission Enforcement
+The UI is purely cosmetic; true security lies in the backend. 
+The backend utilizes a strict permission matrix. Endpoints are secured via FastAPI dependencies:
+```python
+@router.post("/courses/{id}/lessons", dependencies=[require_permission("course:update")])
 ```
-apps/
-  shell/              host app, port 3000          ✅
-  auth/               login/register/forgot :3001  ✅
-  catalog/            browse/search/enroll :3002   ✅
-  learning/           lessons/progress :3003       ✅
-  assignment/         submit/quiz/grades :3004     ✅
-  dashboard/          student widgets :3005        ✅
-  admin/              instructor tools :3006       ✅
-packages/
-  ui/                 @lms/ui — Button, Input, Modal, Navbar, Sidebar, Card, Loader
-  api-client/         @lms/api-client — typed fetch + MSW mock backend
-  tailwind-config/    @lms/tailwind-config — shared Tailwind v4 theme
-  tsconfig/           @lms/tsconfig — shared TS configs
-```
+If a student attempts to bypass the UI and hit the POST endpoint directly, the backend verifies their JWT, realizes they lack the required permission, and throws a 403 Forbidden.
 
-## Port map
+---
 
-| App        | Port | URL prefix      |
-|------------|------|-----------------|
-| shell      | 3000 | `/`             |
-| auth       | 3001 | `/auth`         |
-| catalog    | 3002 | `/courses`      |
-| learning   | 3003 | `/learn`        |
-| assignment | 3004 | `/assignments`  |
-| dashboard  | 3005 | `/dashboard`    |
-| admin      | 3006 | `/admin`        |
+## 6. Production Deployment Wiring
 
-## Develop
+The entire architecture is designed to be horizontally scaled on modern serverless or containerized infrastructure.
 
-```bash
-pnpm install      # install whole workspace
-pnpm dev          # turbo runs all apps (currently just the shell)
-pnpm typecheck    # type-check everything
-pnpm build        # production build
-```
+### 6.1 Database Deployment
+Deploy PostgreSQL via a managed provider (e.g., AWS RDS, Supabase, Neon). Run Alembic migrations (`alembic upgrade head`) to construct the schema.
 
-Open http://localhost:3000.
+### 6.2 Backend Deployment
+The FastAPI application contains a `Dockerfile`. Deploy it to a container service (e.g., Google Cloud Run, AWS ECS, or Render) scaling instances behind a Load Balancer.
 
-## Backend integration (FastAPI · `/api/v1`)
-
-`@lms/api-client` talks to the real backend. Per-app `.env.local`:
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_TENANT_ID=full-lms          # X-Tenant-ID on pre-auth calls
-```
-
-Client core ([packages/api-client/src/client.ts](packages/api-client/src/client.ts)):
-- **Bearer auth** — access token attached from `tokens.ts` (localStorage, shared
-  across zones via the shell origin).
-- **`X-Tenant-ID`** header on every call (ignored once the JWT carries `tid`).
-- **Single-flight refresh** — one 401 triggers a shared `/auth/refresh`; the
-  rotating refresh token is never double-spent. Failure → `lms:unauthenticated`
-  event → `AuthProvider` routes to login.
-- **Error envelope** — throws `ApiError { status, code, requestId, details }`;
-  branch on `code` (`permission_denied`, `module_not_enabled`, `rate_limited`…).
-
-Session + gating ([AuthProvider.tsx](packages/api-client/src/AuthProvider.tsx)):
-- `AuthProvider` bootstraps `/auth/me` → `user`, `roles`, `permissions`.
-- `useAuth().can(permission)` drives nav/action visibility; `AppShell` hides
-  gated items the user lacks (also approximates licensed-module visibility).
-
-### Regenerate types when backend is hosted
-```bash
-cd packages/api-client
-API_URL=http://<backend-host>:8000 pnpm gen:api   # writes src/schema.d.ts
-```
-Then migrate each zone's API module onto the generated types (replacing the
-hand-written contract DTOs in `types.ts`).
-
-### Multi-Tenancy & Subdomain Routing
-This LMS architecture supports true multi-tenancy. 
-- **Subdomain Detection:** The API client automatically infers the `X-Tenant-ID` from the current hostname (e.g., `abc-academy.localhost:3000` sets the tenant to `abc-academy`).
-- **Vercel Fallback:** For local testing or Vercel preview URLs (e.g., `abc-academy-lms.vercel.app`), the client dynamically extracts the slug and applies it.
-
-### Security & Role-Based Access
-- **AdminGuard:** The `/admin` zone is protected by a client-side wrapper that verifies the `user.roles` (requiring `admin`, `tenant_admin`, `super_admin`, or `instructor`). Unauthorized students are silently redirected back to `/dashboard`.
-- **Legacy Purge Complete:** All legacy `*Api` mock interfaces have been deleted. The application strictly adheres to the official `snake_case` backend schema (`UserOut`, `CourseOut`, etc.).
-
-## Adding a new MFE zone (the recipe)
-
-1. `apps/<name>` — a new Next.js app on its assigned port.
-2. In its `next.config.ts`: set `basePath: '/<prefix>'`, `assetPrefix: '/<prefix>'`,
-   and `transpilePackages: ['@lms/ui','@lms/api-client']`.
-3. In its `globals.css`: `@import "@lms/tailwind-config/shared.css";`
-4. Build pages under `app/...` using `@lms/ui` components + `@lms/api-client`.
-5. Enable the matching rewrite in `apps/shell/next.config.ts`.
-
-That's it — the zone now appears under the shell at its prefix.
+### 6.3 Frontend Deployment (Vercel)
+Deploying the MFEs to Vercel is seamless:
+1. Connect Vercel to your GitHub repository.
+2. Vercel automatically detects the Turborepo configuration.
+3. You can either deploy the `shell` app directly (which will build all internal logic) or create 7 separate Vercel projects pointing to the same repository but selecting a different `apps/*` folder as the Root Directory.
+4. Set the `NEXT_PUBLIC_API_URL` environment variable to point to your deployed FastAPI backend.

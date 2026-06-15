@@ -140,7 +140,7 @@ function CreateUserModal({
         email,
         password,
         full_name: fullName,
-        role_code: roleCode,
+        role_codes: [roleCode],
       });
       setEmail(""); setPassword(""); setFullName(""); setRoleCode("student");
       onCreated();

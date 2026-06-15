@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { CourseCreate, CourseOut, Page, ReportOut, UserOut, UserCreate, TenantCreate, CourseUpdate, TenantOut, UserUpdate, LessonCreate, LessonOut, AssignmentCreate, AssignmentOut } from "./types";
+import type { CourseCreate, CourseOut, Page, ReportOut, UserOut, UserCreate, TenantCreate, CourseUpdate, TenantOut, UserUpdate, LessonCreate, LessonOut, AssignmentCreate, AssignmentOut, TenantModuleOut } from "./types";
 
 /** Instructor/admin endpoints (backend). */
 export const adminApi = {
@@ -18,6 +18,6 @@ export const adminApi = {
   analytics: () => api.get<ReportOut>("/admin/reports"),
   tenants: () => api.get<TenantOut[]>("/admin/tenants"),
   createTenant: (payload: TenantCreate) => api.post<TenantOut>("/admin/tenants", payload),
-  listTenantModules: (tenantId: string) => api.get<string[]>(`/admin/tenants/${tenantId}/modules`),
-  toggleTenantModule: (tenantId: string, payload: { module: string; enable: boolean }) => api.put<string[]>(`/admin/tenants/${tenantId}/modules`, payload),
+  listTenantModules: (tenantId: string) => api.get<TenantModuleOut[]>(`/admin/tenants/${tenantId}/modules`),
+  toggleTenantModule: (tenantId: string, payload: { code: string; enabled: boolean }) => api.put<{message: string}>(`/admin/tenants/${tenantId}/modules`, payload),
 };

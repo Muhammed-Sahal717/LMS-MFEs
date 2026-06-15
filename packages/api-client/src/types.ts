@@ -63,7 +63,7 @@ export interface UserCreate {
   email: string;
   password: string;
   full_name: string;
-  role_code?: string;
+  role_codes?: string[];
 }
 
 export interface UserUpdate {
@@ -280,4 +280,8 @@ export interface ReportOut {
   active_modules: string[];
 }
 
-
+export interface TenantModuleOut {
+  code: string;
+  name: string;
+  enabled: boolean;
+}

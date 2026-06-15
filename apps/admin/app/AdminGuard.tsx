@@ -6,13 +6,19 @@ import { useAuth } from "@lms/api-client";
 import { Loader } from "@lms/ui";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, hasModule } = useAuth();
   const pathname = usePathname();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         window.location.href = "/auth/login";
+        return;
+      }
+
+      // Check if the tenant actually has the ADMIN module licensed
+      if (!hasModule("ADMIN")) {
+        window.location.href = "/courses";
         return;
       }
 
@@ -34,7 +40,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         window.location.href = "/dashboard";
       }
     }
-  }, [user, loading, pathname]);
+  }, [user, loading, pathname, hasModule]);
 
   if (loading || !user) {
     return (
@@ -42,6 +48,10 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         <Loader size="lg" label="Verifying access..." />
       </div>
     );
+  }
+
+  if (!hasModule("ADMIN")) {
+    return null; // Will redirect via useEffect
   }
 
   const roles = user.roles.map(r => r.code);

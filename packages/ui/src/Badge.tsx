@@ -17,13 +17,13 @@ const badgeVariants = cva(
           "border-[hsl(var(--border))] text-[hsl(var(--foreground))] shadow-sm",
         // LMS semantic variants using full 50-950 scales
         success:
-          "border-success-200 bg-success-50 text-success-700 dark:border-success-800/50 dark:bg-success-950/50 dark:text-success-400",
+          "border-[hsl(var(--success)/0.2)] bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))] hover:bg-[hsl(var(--success)/0.2)]",
         warning:
-          "border-warning-200 bg-warning-50 text-warning-700 dark:border-warning-800/50 dark:bg-warning-950/50 dark:text-warning-400",
+          "border-[hsl(var(--warning)/0.2)] bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] hover:bg-[hsl(var(--warning)/0.2)]",
         danger:
-          "border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-800/50 dark:bg-danger-950/50 dark:text-danger-400",
+          "border-[hsl(var(--danger)/0.2)] bg-[hsl(var(--danger)/0.1)] text-[hsl(var(--danger))] hover:bg-[hsl(var(--danger)/0.2)]",
         info:
-          "border-info-200 bg-info-50 text-info-700 dark:border-info-800/50 dark:bg-info-950/50 dark:text-info-400",
+          "border-[hsl(var(--info)/0.2)] bg-[hsl(var(--info)/0.1)] text-[hsl(var(--info))] hover:bg-[hsl(var(--info)/0.2)]",
       },
     },
     defaultVariants: {

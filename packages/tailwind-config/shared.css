@@ -7,8 +7,8 @@
  * Design System: shadcn/ui token-based HSL theming
  * Primary: Blue | Secondary Accent: Teal | Neutrals: Slate
  */
-@import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import "tailwindcss";
 
 /* Scan the shared UI package so its class names are not purged. */
 @source "../ui/src/**/*.{ts,tsx}";
